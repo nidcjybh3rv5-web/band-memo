@@ -4,6 +4,7 @@
   "private": true,
   "description": "Secure Band Memo project",
   "scripts": {
-    "test": "node tests/security.test.js && node tests/note.test.js && node tests/storage.test.js"
+    "test": "node tests/security.test.js && node tests/note.test.js && node tests/storage.test.js",
+    "release": "npm test"
   }
 }

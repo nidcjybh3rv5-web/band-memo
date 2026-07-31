@@ -1,0 +1,70 @@
+name: Build RPK
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release-rpk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Restore release signing
+        env:
+          RELEASE_PRIVATE_PEM: ${{ secrets.RELEASE_PRIVATE_PEM }}
+          RELEASE_CERTIFICATE_PEM: ${{ secrets.RELEASE_CERTIFICATE_PEM }}
+        run: |
+          test -n "$RELEASE_PRIVATE_PEM"
+          test -n "$RELEASE_CERTIFICATE_PEM"
+          mkdir -p sign/release
+          printf '%s' "$RELEASE_PRIVATE_PEM" > sign/release/private.pem
+          printf '%s' "$RELEASE_CERTIFICATE_PEM" > sign/release/certificate.pem
+          chmod 600 sign/release/private.pem sign/release/certificate.pem
+
+      - name: Build release RPK
+        run: |
+          if ! npm run | grep -qE '^  release$'; then
+            echo "::error::package.json does not define a real 'release' script. Add the project's actual RPK build command before running this workflow."
+            exit 1
+          fi
+          npm run release
+
+      - name: Find RPK
+        id: rpk
+        shell: bash
+        run: |
+          RPK="$(find dist -type f -name '*.rpk' -print -quit)"
+          test -n "$RPK"
+          echo "path=$RPK" >> "$GITHUB_OUTPUT"
+
+      - name: Upload RPK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: band-memo-rpk
+          path: ${{ steps.rpk.outputs.path }}
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            "${{ steps.rpk.outputs.path }}" \
+            --title "Band Memo ${GITHUB_REF_NAME}" \
+            --generate-notes

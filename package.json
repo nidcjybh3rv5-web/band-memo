@@ -1,0 +1,9 @@
+{
+  "name": "band-memo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Secure Band Memo project",
+  "scripts": {
+    "test": "node tests/security.test.js && node tests/note.test.js && node tests/storage.test.js"
+  }
+}

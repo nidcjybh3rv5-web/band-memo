@@ -25,14 +25,20 @@ jobs:
 
       - name: Check project files
         run: |
-          pwd
-          echo "=== package.json ==="
-          cat package.json
-          echo "=== npm scripts ==="
-          npm run
+          test -f package.json
+          test -f package-lock.json
+          echo "Project files OK"
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Install AIoT Toolkit CLI
+        run: npm install -g aiot-toolkit
+
+      - name: Verify AIoT CLI
+        run: |
+          command -v aiot
+          aiot --help
 
       - name: Restore release signing
         env:
@@ -53,9 +59,8 @@ jobs:
         id: rpk
         shell: bash
         run: |
-          RPK="$(find . -type f -name '*.rpk' -print -quit)"
+          RPK="$(find dist -type f -name '*.rpk' -print -quit)"
           test -n "$RPK"
-          echo "Found RPK: $RPK"
           echo "path=$RPK" >> "$GITHUB_OUTPUT"
 
       - name: Upload RPK artifact

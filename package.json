@@ -6,5 +6,8 @@
   "scripts": {
     "test": "node tests/security.test.js && node tests/note.test.js && node tests/storage.test.js",
     "release": "aiot release"
+  },
+  "devDependencies": {
+    "aiot-toolkit": "2.0.5"
   }
 }

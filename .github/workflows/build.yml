@@ -52,8 +52,12 @@ jobs:
           printf '%s' "$RELEASE_CERTIFICATE_PEM" > sign/release/certificate.pem
           chmod 600 sign/release/private.pem sign/release/certificate.pem
 
-      - name: Build release RPK
-        run: npm run release
+           - name: Build release RPK
+        run: |
+          echo "=== Check aiot ==="
+          npm exec --no -- aiot --version
+          echo "=== Build RPK ==="
+          npm exec --no -- aiot release
 
       - name: Find RPK
         id: rpk

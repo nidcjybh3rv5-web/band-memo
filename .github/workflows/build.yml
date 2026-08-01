@@ -25,20 +25,14 @@ jobs:
 
       - name: Check project files
         run: |
-          test -f package.json
-          test -f package-lock.json
-          echo "Project files OK"
+          pwd
+          echo "=== package.json ==="
+          cat package.json
+          echo "=== npm scripts ==="
+          npm run
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Install AIoT Toolkit CLI
-        run: npm install -g aiot-toolkit
-
-      - name: Verify AIoT CLI
-        run: |
-          command -v aiot
-          aiot --help
 
       - name: Restore release signing
         env:
@@ -52,7 +46,7 @@ jobs:
           printf '%s' "$RELEASE_CERTIFICATE_PEM" > sign/release/certificate.pem
           chmod 600 sign/release/private.pem sign/release/certificate.pem
 
-           - name: Build release RPK
+      - name: Build release RPK
         run: |
           echo "=== Check aiot ==="
           npm exec --no -- aiot --version
@@ -63,8 +57,9 @@ jobs:
         id: rpk
         shell: bash
         run: |
-          RPK="$(find dist -type f -name '*.rpk' -print -quit)"
+          RPK="$(find . -type f -name '*.rpk' -print -quit)"
           test -n "$RPK"
+          echo "Found RPK: $RPK"
           echo "path=$RPK" >> "$GITHUB_OUTPUT"
 
       - name: Upload RPK artifact

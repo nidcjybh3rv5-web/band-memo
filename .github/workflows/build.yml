@@ -25,14 +25,28 @@ jobs:
 
       - name: Check project files
         run: |
-          pwd
+          echo "=== Node ==="
+          node --version
+
+          echo "=== npm ==="
+          npm --version
+
           echo "=== package.json ==="
           cat package.json
-          echo "=== npm scripts ==="
-          npm run
+
+          echo "=== Project files ==="
+          ls -la
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Verify AIoT toolkit
+        run: |
+          echo "=== aiot-toolkit installed ==="
+          npm ls aiot-toolkit
+
+          echo "=== npx aiot-toolkit ==="
+          npx --yes aiot-toolkit --help
 
       - name: Restore release signing
         env:
@@ -41,24 +55,37 @@ jobs:
         run: |
           test -n "$RELEASE_PRIVATE_PEM"
           test -n "$RELEASE_CERTIFICATE_PEM"
+
           mkdir -p sign/release
-          printf '%s' "$RELEASE_PRIVATE_PEM" > sign/release/private.pem
-          printf '%s' "$RELEASE_CERTIFICATE_PEM" > sign/release/certificate.pem
-          chmod 600 sign/release/private.pem sign/release/certificate.pem
+
+          printf '%s' "$RELEASE_PRIVATE_PEM" \
+            > sign/release/private.pem
+
+          printf '%s' "$RELEASE_CERTIFICATE_PEM" \
+            > sign/release/certificate.pem
+
+          chmod 600 \
+            sign/release/private.pem \
+            sign/release/certificate.pem
 
       - name: Build release RPK
-        run: |
-          echo "=== Check aiot ==="
-          npm exec --no -- aiot --version
-          echo "=== Build RPK ==="
-          npm exec --no -- aiot release
+        run: npm run release
 
       - name: Find RPK
         id: rpk
         shell: bash
         run: |
+          echo "=== Searching for RPK ==="
+
           RPK="$(find . -type f -name '*.rpk' -print -quit)"
-          test -n "$RPK"
+
+          if [ -z "$RPK" ]; then
+            echo "ERROR: No RPK file was generated."
+            echo "=== Directory listing ==="
+            find . -maxdepth 5 -type f | sort
+            exit 1
+          fi
+
           echo "Found RPK: $RPK"
           echo "path=$RPK" >> "$GITHUB_OUTPUT"
 

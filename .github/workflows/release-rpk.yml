@@ -12,69 +12,201 @@ permissions:
 jobs:
   release-rpk:
     runs-on: ubuntu-latest
+
     steps:
+      # =========================
+      # 1. Checkout
+      # =========================
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
+      # =========================
+      # 2. Setup Node.js
+      # =========================
+      - name: Setup Node.js LTS
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: lts/*
           cache: npm
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run tests
-        run: npm test
-
-      - name: Check Vela project
+      # =========================
+      # 3. Check project files
+      # =========================
+      - name: Check project files
+        shell: bash
         run: |
-          test -f src/manifest.json
+          set -e
+
+          echo "=== Current directory ==="
+          pwd
+
+          echo "=== Root files ==="
+          ls -la
+
+          echo "=== package.json ==="
+          test -f package.json
+          cat package.json
+
+          echo "=== manifest.json ==="
+          test -f manifest.json
+          cat manifest.json
+
+          echo "=== Vela source ==="
           test -f src/app.ux
           test -f src/pages/index/index.ux
           test -f src/pages/settings/settings.ux
-          node -e "const m=require('./src/manifest.json'); if(!m.package||!m.name||!m.icon||!m.versionCode||!m.router) process.exit(1)"
 
+          echo "=== Project structure OK ==="
+
+      # =========================
+      # 4. Validate manifest
+      # =========================
+      - name: Validate Vela manifest
+        shell: bash
+        run: |
+          set -e
+
+          node - <<'NODE'
+          const fs = require('fs');
+
+          const path = './manifest.json';
+          const m = JSON.parse(fs.readFileSync(path, 'utf8'));
+
+          const required = [
+            'package',
+            'name',
+            'icon',
+            'versionCode',
+            'router'
+          ];
+
+          for (const key of required) {
+            if (
+              m[key] === undefined ||
+              m[key] === null ||
+              m[key] === ''
+            ) {
+              console.error(`Missing manifest field: ${key}`);
+              process.exit(1);
+            }
+          }
+
+          if (!m.router.entry) {
+            console.error('manifest.router.entry is missing');
+            process.exit(1);
+          }
+
+          if (!m.router.pages) {
+            console.error('manifest.router.pages is missing');
+            process.exit(1);
+          }
+
+          console.log('Vela manifest validation passed');
+          NODE
+
+      # =========================
+      # 5. Install dependencies
+      # =========================
+      - name: Install dependencies
+        run: npm ci
+
+      # =========================
+      # 6. Run tests
+      # =========================
+      - name: Run tests
+        run: npm test
+
+      # =========================
+      # 7. Restore release signing
+      # =========================
       - name: Restore release signing
         env:
           RELEASE_PRIVATE_PEM: ${{ secrets.RELEASE_PRIVATE_PEM }}
           RELEASE_CERTIFICATE_PEM: ${{ secrets.RELEASE_CERTIFICATE_PEM }}
+        shell: bash
         run: |
+          set -e
+
           test -n "$RELEASE_PRIVATE_PEM"
           test -n "$RELEASE_CERTIFICATE_PEM"
-          mkdir -p sign
-          printf '%s' "$RELEASE_PRIVATE_PEM" > sign/private.pem
-          printf '%s' "$RELEASE_CERTIFICATE_PEM" > sign/certificate.pem
-          chmod 600 sign/private.pem sign/certificate.pem
 
+          mkdir -p sign/release
+
+          printf '%s' "$RELEASE_PRIVATE_PEM" \
+            > sign/release/private.pem
+
+          printf '%s' "$RELEASE_CERTIFICATE_PEM" \
+            > sign/release/certificate.pem
+
+          chmod 600 \
+            sign/release/private.pem \
+            sign/release/certificate.pem
+
+          echo "Release signing files restored"
+
+      # =========================
+      # 8. Build release RPK
+      # =========================
       - name: Build release RPK
         run: npm run release
 
+      # =========================
+      # 9. Find RPK
+      # =========================
       - name: Find RPK
         id: rpk
         shell: bash
         run: |
-          RPK="$(find dist -type f -name '*.rpk' -print -quit 2>/dev/null || true)"
-          test -n "$RPK"
+          set -e
+
+          RPK="$(find . \
+            -type f \
+            -name '*.rpk' \
+            -not -path './node_modules/*' \
+            -print -quit)"
+
+          if [ -z "$RPK" ]; then
+            echo "ERROR: No .rpk file was produced."
+            echo "=== Files found ==="
+            find . -maxdepth 4 -type f | sort
+            exit 1
+          fi
+
           echo "Found RPK: $RPK"
           echo "path=$RPK" >> "$GITHUB_OUTPUT"
 
+      # =========================
+      # 10. Upload artifact
+      # =========================
       - name: Upload RPK artifact
         uses: actions/upload-artifact@v4
         with:
           name: band-memo-rpk
           path: ${{ steps.rpk.outputs.path }}
+          if-no-files-found: error
 
+      # =========================
+      # 11. Create GitHub Release
+      # =========================
       - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
         env:
           GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
+          set -e
+
           gh release create "${GITHUB_REF_NAME}" \
             "${{ steps.rpk.outputs.path }}" \
             --title "Band Memo ${GITHUB_REF_NAME}" \
             --generate-notes
 
+      # =========================
+      # 12. Remove signing files
+      # =========================
       - name: Remove signing files
         if: always()
-        run: rm -f sign/private.pem sign/certificate.pem
+        shell: bash
+        run: |
+          rm -f sign/release/private.pem
+          rm -f sign/release/certificate.pem

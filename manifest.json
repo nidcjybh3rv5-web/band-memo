@@ -1,0 +1,30 @@
+{
+  "package": "com.bandmemo.app",
+  "name": "Band Memo",
+  "icon": "/common/images/icon.png",
+  "versionName": "1.0.0",
+  "versionCode": 1,
+  "minAPILevel": 1,
+  "features": [
+    {
+      "name": "system.storage"
+    }
+  ],
+  "router": {
+    "entry": "Index",
+    "pages": {
+      "Index": {
+        "component": "index",
+        "path": "/"
+      },
+      "Settings": {
+        "component": "settings",
+        "path": "/settings"
+      }
+    }
+  },
+  "display": {
+    "backgroundColor": "#ffffff",
+    "designWidth": 192
+  }
+}

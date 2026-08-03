@@ -1,0 +1,6 @@
+node_modules/
+dist/
+sign/release/
+.env
+.env.*
+*.pem

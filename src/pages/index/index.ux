@@ -1,0 +1,11 @@
+<!-- minimal index.ux placeholder -->
+<template>
+  <div class="page">
+    <h1>Band Memo — Home</h1>
+    <p>This is a placeholder for src/pages/index/index.ux. Replace with real content.</p>
+  </div>
+</template>
+
+<style>
+.page { padding: 16px; font-family: sans-serif; }
+</style>

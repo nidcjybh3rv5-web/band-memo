@@ -1,7 +1,0 @@
-<view class="page">
-  <text class="title">Band Memo</text>
-  <input id="title" placeholder="標題" />
-  <textarea id="content" placeholder="內容"></textarea>
-  <button id="save">儲存</button>
-  <list id="notes"></list>
-</view>

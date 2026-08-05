@@ -8,9 +8,20 @@ function normalizeText(value, maxLength) {
   if (typeof value !== 'string') return '';
   return value
     .normalize('NFC')
-    .replace(/[^\S\r\n\t\p{L}\p{N}\p{P}\p{Zs}]/gu, '')
+    .replace(/[^
+	\p{L}\p{N}\p{P}\p{Zs}]/gu, '')
     .trim()
     .slice(0, maxLength);
+}
+
+function escapeHtml(value) {
+  if (typeof value !== 'string') return '';
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function validateNote(input) {
@@ -47,6 +58,7 @@ module.exports = {
   MAX_CONTENT_LENGTH,
   MAX_NOTE_ID_LENGTH,
   normalizeText,
+  escapeHtml,
   validateNote,
   isSafeIndex
 };

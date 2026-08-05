@@ -8,7 +8,7 @@ function normalizeText(value, maxLength) {
   if (typeof value !== 'string') return '';
   return value
     .normalize('NFC')
-    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
+    .replace(/[^\S\r\n\t\p{L}\p{N}\p{P}\p{Zs}]/gu, '')
     .trim()
     .slice(0, maxLength);
 }
@@ -20,9 +20,12 @@ function validateNote(input) {
   const content = normalizeText(input.content, MAX_CONTENT_LENGTH);
   if (!title && !content) return null;
 
-  const id = typeof input.id === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(input.id)
-    ? input.id
-    : '';
+  // If an id was supplied, it MUST be valid. If no id supplied, caller may generate one.
+  if (Object.prototype.hasOwnProperty.call(input, 'id')) {
+    if (typeof input.id !== 'string' || !/^[A-Za-z0-9_-]{1,64}$/.test(input.id)) return null;
+  }
+
+  const id = typeof input.id === 'string' ? input.id : '';
 
   const createdAt = Number.isFinite(input.createdAt) && input.createdAt >= 0
     ? input.createdAt

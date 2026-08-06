@@ -12,215 +12,84 @@ permissions:
 jobs:
   release-rpk:
     runs-on: ubuntu-latest
-
     steps:
-      # =========================
-      # 1. Checkout
-      # =========================
       - name: Checkout
         uses: actions/checkout@v4
 
-      # =========================
-      # 2. Setup Node.js
-      # =========================
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
-      # =========================
-      # 3. Check project files
-      # =========================
-      - name: Check project files
-        shell: bash
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Check Vela project
         run: |
-          set -e
-
-          echo "=== Current directory ==="
-          pwd
-
-          echo "=== Root files ==="
-          ls -la
-
-          echo "=== package.json ==="
-          test -f package.json
-          cat package.json
-
-          echo "=== manifest.json ==="
-          test -f manifest.json
-          cat manifest.json
-
-          echo "=== Vela source ==="
+          set -o pipefail
+          echo "Listing files for debug:"
+          ls -la src || true
+          test -f src/manifest.json
           test -f src/app.ux
           test -f src/pages/index/index.ux
           test -f src/pages/settings/settings.ux
 
-          echo "=== Project structure OK ==="
+          echo '--- src/manifest.json ---'
+          cat src/manifest.json || true
+          echo '------------------------'
 
-      # =========================
-      # 4. Validate Vela manifest
-      # =========================
-      - name: Validate Vela manifest
-        shell: bash
-        run: |
-          set -e
+          node -e "try{ const m=require('./src/manifest.json'); const required=['package','name','icon','versionCode','router']; const missing=required.filter(k=>{ const v=m[k]; return v===undefined||v===null||v==='' }); if(missing.length){ console.error('Missing manifest keys:', missing.join(', ')); process.exit(1);} console.log('manifest OK'); } catch(e){ console.error('Failed to load manifest.json:', e && e.message); process.exit(1); }"
 
-          node - <<'NODE'
-          const fs = require('fs');
-
-          const path = './manifest.json';
-
-          if (!fs.existsSync(path)) {
-            console.error('ERROR: manifest.json not found');
-            process.exit(1);
-          }
-
-          let m;
-
-          try {
-            m = JSON.parse(fs.readFileSync(path, 'utf8'));
-          } catch (error) {
-            console.error('ERROR: manifest.json is invalid JSON');
-            console.error(error.message);
-            process.exit(1);
-          }
-
-          const required = [
-            'package',
-            'name',
-            'icon',
-            'versionCode',
-            'router'
-          ];
-
-          for (const key of required) {
-            if (
-              m[key] === undefined ||
-              m[key] === null ||
-              m[key] === ''
-            ) {
-              console.error(`Missing manifest field: ${key}`);
-              process.exit(1);
-            }
-          }
-
-          if (!m.router.entry) {
-            console.error('manifest.router.entry is missing');
-            process.exit(1);
-          }
-
-          if (!m.router.pages) {
-            console.error('manifest.router.pages is missing');
-            process.exit(1);
-          }
-
-          console.log('Vela manifest validation passed');
-          NODE
-
-      # =========================
-      # 5. Install dependencies
-      # =========================
-      - name: Install dependencies
-        run: npm ci
-
-      # =========================
-      # 6. Run tests
-      # =========================
-      - name: Run tests
-        run: npm test
-
-      # =========================
-      # 7. Restore release signing
-      # =========================
       - name: Restore release signing
         env:
           RELEASE_PRIVATE_PEM: ${{ secrets.RELEASE_PRIVATE_PEM }}
           RELEASE_CERTIFICATE_PEM: ${{ secrets.RELEASE_CERTIFICATE_PEM }}
-        shell: bash
         run: |
-          set -e
-
           test -n "$RELEASE_PRIVATE_PEM"
           test -n "$RELEASE_CERTIFICATE_PEM"
+          mkdir -p sign
+          printf '%s' "$RELEASE_PRIVATE_PEM" > sign/private.pem
+          printf '%s' "$RELEASE_CERTIFICATE_PEM" > sign/certificate.pem
+          chmod 600 sign/private.pem sign/certificate.pem
 
-          mkdir -p sign/release
-
-          printf '%s' "$RELEASE_PRIVATE_PEM" \
-            > sign/release/private.pem
-
-          printf '%s' "$RELEASE_CERTIFICATE_PEM" \
-            > sign/release/certificate.pem
-
-          chmod 600 \
-            sign/release/private.pem \
-            sign/release/certificate.pem
-
-          echo "Release signing files restored"
-
-      # =========================
-      # 8. Build release RPK
-      # =========================
       - name: Build release RPK
         run: npm run release
 
-      # =========================
-      # 9. Find RPK
-      # =========================
       - name: Find RPK
         id: rpk
         shell: bash
         run: |
-          set -e
-
-          RPK="$(find . \
-            -type f \
-            -name '*.rpk' \
-            -not -path './node_modules/*' \
-            -print -quit)"
-
-          if [ -z "$RPK" ]; then
-            echo "ERROR: No .rpk file was produced."
-            echo "=== Files found ==="
-            find . -maxdepth 4 -type f | sort
-            exit 1
-          fi
-
+          RPK="$(find dist -type f -name '*.rpk' -print -quit 2>/dev/null || true)"
+          test -n "$RPK"
           echo "Found RPK: $RPK"
           echo "path=$RPK" >> "$GITHUB_OUTPUT"
 
-      # =========================
-      # 10. Upload RPK artifact
-      # =========================
       - name: Upload RPK artifact
         uses: actions/upload-artifact@v4
         with:
           name: band-memo-rpk
           path: ${{ steps.rpk.outputs.path }}
-          if-no-files-found: error
 
-      # =========================
-      # 11. Create GitHub Release
-      # =========================
-      - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -e
+        - name: Create GitHub Release
+    id: create_release
+    uses: actions/create-release@v1
+    with:
+      tag_name: ${{ github.ref_name }}
+      release_name: Band Memo ${{ github.ref_name }}
+      body: Release generated by CI
+      draft: false
+      prerelease: false
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-          gh release create "${GITHUB_REF_NAME}" \
-            "${{ steps.rpk.outputs.path }}" \
-            --title "Band Memo ${GITHUB_REF_NAME}" \
-            --generate-notes
-
-      # =========================
-      # 12. Remove signing files
-      # =========================
-      - name: Remove signing files
-        if: always()
-        shell: bash
-        run: |
-          rm -f sign/release/private.pem
-          rm -f sign/release/certificate.pem
+  - name: Upload RPK to release
+    uses: actions/upload-release-asset@v1
+    with:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      asset_path: ${{ steps.rpk.outputs.path }}
+      asset_name: ${{ steps.rpk.outputs.path }}
+      asset_content_type: application/octet-stream

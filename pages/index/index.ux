@@ -1,0 +1,212 @@
+<template>
+  <div class="page">
+    <text class="title">Band Memo</text>
+    <input class="field" value="{{title}}" placeholder="標題" @change="onTitleChange"></input>
+    <input class="field" value="{{content}}" placeholder="內容" @change="onContentChange"></input>
+    <input class="button" type="button" value="儲存" @click="saveNote"></input>
+    <text class="status">{{status}}</text>
+    <list class="list">
+      <list-item class="item" type="note" for="{{notes}}" tid="id">
+        <text class="note-title">{{$item.title}}</text>
+        <text class="note-content">{{$item.content}}</text>
+      </list-item>
+    </list>
+  </div>
+</template>
+
+<style>
+.page {
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  flex-direction: column;
+  background-color: #ffffff;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.field {
+  width: 100%;
+  height: 48px;
+  margin-bottom: 8px;
+  border: 1px solid #cccccc;
+  border-radius: 8px;
+  padding-left: 10px;
+  font-size: 18px;
+}
+
+.button {
+  width: 130px;
+  height: 48px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  background-color: #222222;
+  color: #ffffff;
+  font-size: 18px;
+}
+
+.status {
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.list {
+  flex: 1;
+  width: 100%;
+}
+
+.item {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 8px;
+  flex-direction: column;
+  border: 1px solid #dddddd;
+  border-radius: 8px;
+}
+
+.note-title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.note-content {
+  font-size: 16px;
+  margin-top: 4px;
+}
+</style>
+
+<script>
+import storage from '@system.storage'
+import { escapeHtml } from '../../src/security'
+
+const STORAGE_KEY = 'band-memo.notes.v1'
+const MAX_NOTES = 100
+const MAX_TITLE_LENGTH = 80
+const MAX_CONTENT_LENGTH = 4000
+const MAX_STORAGE_LENGTH = 500000
+
+function clean(value, maxLength) {
+  if (typeof value !== 'string') return ''
+  return value
+    .normalize('NFC')
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
+    .trim()
+    .slice(0, maxLength)
+}
+
+function validateNote(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  const title = clean(value.title, MAX_TITLE_LENGTH)
+  const content = clean(value.content, MAX_CONTENT_LENGTH)
+  if (!title && !content) return null
+  if (typeof value.id !== 'string' || !/^[A-Za-z0-9_-]{1,64}$/.test(value.id)) return null
+  const createdAt = Number.isFinite(value.createdAt) && value.createdAt >= 0 ? value.createdAt : 0
+  const updatedAt = Number.isFinite(value.updatedAt) && value.updatedAt >= createdAt ? value.updatedAt : createdAt
+  return { id: value.id, title, content, createdAt, updatedAt }
+}
+
+function parseNotes(raw) {
+  if (typeof raw !== 'string' || raw.length > MAX_STORAGE_LENGTH) return []
+  try {
+    const data = JSON.parse(raw)
+    if (!Array.isArray(data)) return []
+    return data.slice(0, MAX_NOTES)
+      .map(validateNote)
+      .filter(Boolean)
+      .map(n => ({ ...n, title: escapeHtml(n.title), content: escapeHtml(n.content) }))
+  } catch (_) {
+    return []
+  }
+}
+
+export default {
+  private: {
+    title: '',
+    content: '',
+    status: '',
+    notes: [],
+    saving: false
+  },
+
+  onInit() {
+    this.loadNotes()
+  },
+
+  onTitleChange(evt) {
+    this.title = clean(evt && evt.value, MAX_TITLE_LENGTH)
+  },
+
+  onContentChange(evt) {
+    this.content = clean(evt && evt.value, MAX_CONTENT_LENGTH)
+  },
+
+  loadNotes() {
+    const self = this
+    storage.get({
+      key: STORAGE_KEY,
+      default: '[]',
+      success(value) {
+        self.notes = parseNotes(value)
+      },
+      fail() {
+        self.notes = []
+        self.status = '無法讀取儲存資料'
+      }
+    })
+  },
+
+  saveNote() {
+    if (this.saving) return
+
+    const title = clean(this.title, MAX_TITLE_LENGTH)
+    const content = clean(this.content, MAX_CONTENT_LENGTH)
+    if (!title && !content) {
+      this.status = '請輸入標題或內容'
+      return
+    }
+
+    this.saving = true
+    const self = this
+    storage.get({
+      key: STORAGE_KEY,
+      default: '[]',
+      success(value) {
+        const current = parseNotes(value)
+        const now = Date.now()
+        const note = {
+          id: `${now.toString(36)}-${Math.floor(Math.random() * 1000000).toString(36)}`,
+          title,
+          content,
+          createdAt: now,
+          updatedAt: now
+        }
+        const next = [note].concat(current).slice(0, MAX_NOTES)
+
+        storage.set({
+          key: STORAGE_KEY,
+          value: JSON.stringify(next),
+          success() {
+            self.notes = next
+            self.title = ''
+            self.content = ''
+            self.status = '已儲存'
+            self.saving = false
+          },
+          fail() {
+            self.status = '儲存失敗'
+            self.saving = false
+          }
+        })
+      },
+      fail() {
+        self.status = '讀取失敗，未儲存'
+        self.saving = false
+      }
+    })
+  }
+}
+</script>

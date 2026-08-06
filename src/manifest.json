@@ -1,0 +1,10 @@
+{
+  "package": "com.example.bandmemo",
+  "name": "Band Memo",
+  "icon": "icon.png",
+  "versionCode": "1.0.0",
+  "router": {
+    "home": "src/pages/index/index.ux",
+    "settings": "src/pages/settings/settings.ux"
+  }
+}

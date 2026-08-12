@@ -1,0 +1,10 @@
+{
+  "name": "band-memo-vela-band9",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Xiaomi Vela JS quick memo for Xiaomi Band 9 / 9 NFC",
+  "scripts": {
+    "build": "aiot build --enable-jsc",
+    "release": "aiot release --enable-jsc"
+  }
+}

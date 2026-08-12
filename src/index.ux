@@ -1,0 +1,118 @@
+<template>
+  <div class="page">
+    <div class="header">
+      <text class="title">速記</text>
+      <text class="count">{{notes.length}} / 12</text>
+    </div>
+
+    <div class="actions">
+      <input class="add" type="button" value="＋ 新增速記" @click="addNote" />
+      <input class="clear" type="button" value="清空" @click="clearNotes" />
+    </div>
+
+    <text class="hint" if="{{notes.length === 0}}">按「新增速記」建立提醒</text>
+    <list class="list" if="{{notes.length > 0}}">
+      <list-item class="item" for="{{notes}}" tid="{{$item.id}}">
+        <text class="note">{{$item.text}}</text>
+        <text class="time">{{$item.time}}</text>
+      </list-item>
+    </list>
+  </div>
+</template>
+
+<script>
+  import storage from '@system.storage'
+
+  const KEY = 'band-memo.notes.v1'
+  const MAX_NOTES = 12
+  const MAX_BYTES = 4096
+  const TEMPLATES = ['喝水', '回覆訊息', '帶鑰匙', '休息一下', '記得運動', '待辦事項']
+
+  function safeNotes(raw) {
+    if (typeof raw !== 'string' || raw.length > MAX_BYTES) return []
+    try {
+      const items = JSON.parse(raw)
+      if (!Array.isArray(items)) return []
+      const ids = {}
+      return items.reduce(function (result, item) {
+        if (!item || typeof item !== 'object' || typeof item.id !== 'string' || ids[item.id]) return result
+        if (typeof item.text !== 'string' || item.text.length < 1 || item.text.length > 24) return result
+        if (typeof item.time !== 'string' || item.time.length > 16 || result.length >= MAX_NOTES) return result
+        ids[item.id] = true
+        result.push({ id: item.id, text: item.text, time: item.time })
+        return result
+      }, [])
+    } catch (error) {
+      return []
+    }
+  }
+
+  export default {
+    private: {
+      notes: []
+    },
+    onInit() {
+      const self = this
+      storage.get({
+        key: KEY,
+        default: '[]',
+        success(data) {
+          self.notes = safeNotes(typeof data === 'string' ? data : data && data.data)
+        },
+        fail() {
+          self.notes = []
+        }
+      })
+    },
+    addNote() {
+      const now = new Date()
+      const text = TEMPLATES[this.notes.length % TEMPLATES.length]
+      const note = {
+        id: String(now.getTime()) + '-' + String(this.notes.length),
+        text: text,
+        time: String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0')
+      }
+      this.notes = [note].concat(this.notes).slice(0, MAX_NOTES)
+      this.persist()
+    },
+    clearNotes() {
+      this.notes = []
+      this.persist()
+    },
+    persist() {
+      storage.set({
+        key: KEY,
+        value: JSON.stringify(this.notes),
+        fail() {
+          console.warn('Unable to save notes')
+        }
+      })
+    }
+  }
+</script>
+
+<style>
+  .page {
+    width: 192px;
+    min-height: 490px;
+    padding: 24px 16px 34px;
+    background-color: #10131a;
+    flex-direction: column;
+  }
+  .header, .actions {
+    flex-direction: row;
+    align-items: center;
+  }
+  .header { justify-content: space-between; margin-bottom: 18px; }
+  .title { color: #ffffff; font-size: 28px; font-weight: bold; }
+  .count { color: #8e99ac; font-size: 14px; }
+  .actions { margin-bottom: 14px; }
+  .add, .clear { height: 42px; border-radius: 21px; font-size: 15px; color: #ffffff; }
+  .add { width: 112px; background-color: #4169e1; margin-right: 8px; }
+  .clear { width: 48px; background-color: #2a3040; }
+  .hint { color: #8e99ac; font-size: 15px; margin-top: 20px; text-align: center; }
+  .list { flex: 1; }
+  .item { padding: 12px; margin-bottom: 8px; border-radius: 12px; background-color: #1d2330; flex-direction: column; }
+  .note { color: #ffffff; font-size: 18px; }
+  .time { color: #8e99ac; font-size: 13px; margin-top: 4px; }
+</style>

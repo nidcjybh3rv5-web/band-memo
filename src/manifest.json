@@ -6,20 +6,27 @@
   "versionCode": 1,
   "minAPILevel": 1,
   "features": [
-    { "name": "system.storage" }
+    {
+      "name": "system.storage"
+    }
   ],
   "config": {
     "designWidth": 192,
     "logLevel": "warn"
   },
   "router": {
-    "entry": "Index",
+    "entry": "pages/index",
     "pages": {
-      "Index": { "component": "index", "path": "/" }
+      "pages/index": {
+        "component": "index",
+        "path": "/"
+      }
     }
   },
   "display": {
     "backgroundColor": "#10131a"
   },
-  "deviceTypeList": ["watch"]
+  "deviceTypeList": [
+    "watch"
+  ]
 }

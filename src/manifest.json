@@ -15,9 +15,9 @@
     "logLevel": "warn"
   },
   "router": {
-    "entry": "pages/index",
+    "entry": "Index",
     "pages": {
-      "pages/index": {
+      "Index": {
         "component": "index",
         "path": "/"
       }

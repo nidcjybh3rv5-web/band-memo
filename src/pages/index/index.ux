@@ -5,110 +5,459 @@
         <text class="title">速記</text>
         <text class="count">{{notes.length}} / 12</text>
       </div>
-      <input class="new-note" type="button" value="＋ 新增速記" @click="openKeyboard" />
-      <text class="hint" if="{{notes.length === 0}}">點選新增，輸入你的備忘</text>
-      <list class="list" if="{{notes.length > 0}}">
-        <list-item class="item" for="{{notes}}" tid="{{$item.id}}">
+
+      <input
+        class="new-note"
+        type="button"
+        value="＋ 新增速記"
+        @click="openKeyboard"
+      />
+
+      <text
+        class="hint"
+        if="{{notes.length === 0}}"
+      >
+        點選新增，輸入你的備忘
+      </text>
+
+      <list
+        class="list"
+        if="{{notes.length > 0}}"
+      >
+        <list-item
+          class="item"
+          for="{{notes}}"
+          type="list"
+          tid="memo-item"
+        >
           <text class="note">{{$item.text}}</text>
           <text class="time">{{$item.time}}</text>
         </list-item>
       </list>
     </div>
 
-    <div class="keyboard-page" if="{{mode === 'keyboard'}}">
-      <div class="input-box"><text class="typed">{{draft || '輸入備忘…'}}</text></div>
-      <div class="tools">
-        <input class="tool lang" type="button" value="EN" @click="showLanguageHint" />
-        <input class="tool clear" type="button" value="清除" @click="clearDraft" />
-        <input class="tool done" type="button" value="儲存" @click="saveDraft" />
+    <div
+      class="keyboard-page"
+      if="{{mode === 'keyboard'}}"
+    >
+      <div class="input-box">
+        <text class="typed">
+          {{draft || '輸入備忘…'}}
+        </text>
       </div>
-      <text class="language-hint" if="{{showHint}}">目前為英文鍵盤</text>
+
+      <div class="tools">
+        <input
+          class="tool lang"
+          type="button"
+          value="EN"
+          @click="showLanguageHint"
+        />
+
+        <input
+          class="tool clear"
+          type="button"
+          value="清除"
+          @click="clearDraft"
+        />
+
+        <input
+          class="tool done"
+          type="button"
+          value="儲存"
+          @click="saveDraft"
+        />
+      </div>
+
+      <text
+        class="language-hint"
+        if="{{showHint}}"
+      >
+        目前為英文鍵盤
+      </text>
+
       <div class="keys">
         <div class="key-row row-one">
-          <input class="key" type="button" value="Q" @click="typeKey" /><input class="key" type="button" value="W" @click="typeKey" /><input class="key" type="button" value="E" @click="typeKey" /><input class="key" type="button" value="R" @click="typeKey" /><input class="key" type="button" value="T" @click="typeKey" />
+          <input class="key" type="button" value="Q" @click="typeKey" />
+          <input class="key" type="button" value="W" @click="typeKey" />
+          <input class="key" type="button" value="E" @click="typeKey" />
+          <input class="key" type="button" value="R" @click="typeKey" />
+          <input class="key" type="button" value="T" @click="typeKey" />
         </div>
+
         <div class="key-row row-two">
-          <input class="key" type="button" value="A" @click="typeKey" /><input class="key" type="button" value="S" @click="typeKey" /><input class="key" type="button" value="D" @click="typeKey" /><input class="key" type="button" value="F" @click="typeKey" /><input class="key" type="button" value="G" @click="typeKey" />
+          <input class="key" type="button" value="A" @click="typeKey" />
+          <input class="key" type="button" value="S" @click="typeKey" />
+          <input class="key" type="button" value="D" @click="typeKey" />
+          <input class="key" type="button" value="F" @click="typeKey" />
+          <input class="key" type="button" value="G" @click="typeKey" />
         </div>
+
         <div class="key-row row-three">
-          <input class="key" type="button" value="Z" @click="typeKey" /><input class="key" type="button" value="X" @click="typeKey" /><input class="key" type="button" value="C" @click="typeKey" /><input class="backspace" type="button" value="⌫" @click="backspace" />
+          <input class="key" type="button" value="Z" @click="typeKey" />
+          <input class="key" type="button" value="X" @click="typeKey" />
+          <input class="key" type="button" value="C" @click="typeKey" />
+          <input
+            class="backspace"
+            type="button"
+            value="⌫"
+            @click="backspace"
+          />
         </div>
-        <input class="space" type="button" value="空白" @click="space" />
+
+        <input
+          class="space"
+          type="button"
+          value="空白"
+          @click="space"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script>
-  import storage from '@system.storage'
+import storage from '@system.storage'
 
-  const KEY = 'band-memo.notes.v1'
-  const MAX_NOTES = 12
-  const MAX_BYTES = 4096
-  const MAX_TEXT_LENGTH = 24
+const KEY = 'band-memo.notes.v1'
+const MAX_NOTES = 12
+const MAX_BYTES = 4096
+const MAX_TEXT_LENGTH = 24
 
-  function safeNotes(raw) {
-    if (typeof raw !== 'string' || raw.length > MAX_BYTES) return []
-    try {
-      const items = JSON.parse(raw)
-      if (!Array.isArray(items)) return []
-      const ids = {}
-      return items.reduce(function (result, item) {
-        if (!item || typeof item !== 'object' || typeof item.id !== 'string' || ids[item.id]) return result
-        if (typeof item.text !== 'string' || item.text.length < 1 || item.text.length > MAX_TEXT_LENGTH) return result
-        if (typeof item.time !== 'string' || item.time.length > 16 || result.length >= MAX_NOTES) return result
-        ids[item.id] = true
-        result.push({ id: item.id, text: item.text, time: item.time })
+function safeNotes(raw) {
+  if (typeof raw !== 'string' || raw.length > MAX_BYTES) {
+    return []
+  }
+
+  try {
+    const items = JSON.parse(raw)
+
+    if (!Array.isArray(items)) {
+      return []
+    }
+
+    const ids = {}
+
+    return items.reduce(function (result, item) {
+      if (
+        !item ||
+        typeof item !== 'object' ||
+        typeof item.id !== 'string' ||
+        ids[item.id]
+      ) {
         return result
-      }, [])
-    } catch (error) { return [] }
-  }
+      }
 
-  export default {
-    private: { notes: [], mode: 'memo', draft: '', showHint: false },
-    onInit() {
-      const self = this
-      storage.get({ key: KEY, default: '[]', success(data) { self.notes = safeNotes(typeof data === 'string' ? data : data && data.data) }, fail() { self.notes = [] } })
-    },
-    openKeyboard() { this.mode = 'keyboard'; this.draft = ''; this.showHint = false },
-    typeKey(event) { if (this.draft.length < MAX_TEXT_LENGTH) this.draft += event.value },
-    space() { if (this.draft.length < MAX_TEXT_LENGTH) this.draft += ' ' },
-    backspace() { this.draft = this.draft.slice(0, -1) },
-    clearDraft() { this.draft = '' },
-    showLanguageHint() { this.showHint = true },
-    saveDraft() {
-      const text = this.draft.trim()
-      if (!text) return
-      const now = new Date()
-      const note = { id: String(now.getTime()) + '-' + String(this.notes.length), text: text, time: String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') }
-      this.notes = [note].concat(this.notes).slice(0, MAX_NOTES)
-      this.persist()
-      this.mode = 'memo'
-    },
-    persist() { storage.set({ key: KEY, value: JSON.stringify(this.notes), fail() { console.warn('Unable to save notes') } }) }
+      if (
+        typeof item.text !== 'string' ||
+        item.text.length < 1 ||
+        item.text.length > MAX_TEXT_LENGTH
+      ) {
+        return result
+      }
+
+      if (
+        typeof item.time !== 'string' ||
+        item.time.length > 16 ||
+        result.length >= MAX_NOTES
+      ) {
+        return result
+      }
+
+      ids[item.id] = true
+
+      result.push({
+        id: item.id,
+        text: item.text,
+        time: item.time
+      })
+
+      return result
+    }, [])
+  } catch (error) {
+    return []
   }
+}
+
+export default {
+  private: {
+    notes: [],
+    mode: 'memo',
+    draft: '',
+    showHint: false
+  },
+
+  onInit() {
+    const self = this
+
+    storage.get({
+      key: KEY,
+      default: '[]',
+
+      success(data) {
+        self.notes = safeNotes(
+          typeof data === 'string'
+            ? data
+            : data && data.data
+        )
+      },
+
+      fail() {
+        self.notes = []
+      }
+    })
+  },
+
+  openKeyboard() {
+    this.mode = 'keyboard'
+    this.draft = ''
+    this.showHint = false
+  },
+
+  typeKey(event) {
+    if (
+      event &&
+      typeof event.value === 'string' &&
+      this.draft.length < MAX_TEXT_LENGTH
+    ) {
+      this.draft += event.value
+    }
+  },
+
+  space() {
+    if (this.draft.length < MAX_TEXT_LENGTH) {
+      this.draft += ' '
+    }
+  },
+
+  backspace() {
+    this.draft = this.draft.slice(0, -1)
+  },
+
+  clearDraft() {
+    this.draft = ''
+  },
+
+  showLanguageHint() {
+    this.showHint = true
+  },
+
+  saveDraft() {
+    const text = this.draft.trim()
+
+    if (!text) {
+      return
+    }
+
+    const now = new Date()
+
+    const hour = String(now.getHours()).padStart(2, '0')
+    const minute = String(now.getMinutes()).padStart(2, '0')
+
+    const note = {
+      id: String(now.getTime()) + '-' + String(this.notes.length),
+      text: text,
+      time: hour + ':' + minute
+    }
+
+    this.notes = [note]
+      .concat(this.notes)
+      .slice(0, MAX_NOTES)
+
+    this.persist()
+    this.mode = 'memo'
+  },
+
+  persist() {
+    storage.set({
+      key: KEY,
+      value: JSON.stringify(this.notes),
+
+      fail() {
+        console.warn('Unable to save notes')
+      }
+    })
+  }
+}
 </script>
 
 <style>
-  .page { width: 192px; min-height: 490px; background-color: #000000; flex-direction: column; }
-  .memo { padding: 24px 16px 34px; flex-direction: column; }
-  .header, .tools, .key-row { flex-direction: row; align-items: center; }
-  .header { justify-content: space-between; margin-bottom: 18px; }
-  .title, .note, .typed { color: #ffffff; }
-  .title { font-size: 28px; font-weight: bold; }
-  .count, .hint, .time, .language-hint { color: #8e99ac; font-size: 14px; }
-  .new-note { width: 160px; height: 42px; border-radius: 21px; font-size: 16px; color: #ffffff; background-color: #246bff; }
-  .hint { margin-top: 20px; text-align: center; }
-  .list { flex: 1; margin-top: 14px; }
-  .item { padding: 12px; margin-bottom: 8px; border-radius: 12px; background-color: #1d2330; flex-direction: column; }
-  .note { font-size: 18px; }.time { margin-top: 4px; }
-  .keyboard-page { width: 192px; min-height: 490px; padding-top: 22px; align-items: center; flex-direction: column; }
-  .input-box { width: 160px; height: 48px; padding: 8px; border-radius: 16px; border-width: 2px; border-color: #246bff; background-color: #101827; justify-content: center; }
-  .typed { font-size: 16px; }.tools { width: 166px; justify-content: space-between; margin-top: 10px; }
-  .tool { height: 34px; border-radius: 17px; color: #ffffff; font-size: 14px; }.lang,.done { width: 48px; background-color: #246bff; }.clear { width: 56px; background-color: #e03a3a; }
-  .language-hint { height: 18px; margin-top: 4px; }
-  .keys { width: 192px; height: 290px; margin-top: 8px; padding-top: 20px; background-color: #080808; align-items: center; flex-direction: column; }
-  .key-row { justify-content: center; height: 64px; }.row-two { padding-left: 14px; }.row-three { padding-left: 22px; }
-  .key, .backspace { width: 42px; height: 42px; margin-right: 3px; border-radius: 21px; background-color: #242525; color: #ffffff; font-size: 22px; }
-  .backspace { background-color: #343434; font-size: 19px; }.space { width: 120px; height: 34px; margin-top: 6px; border-radius: 17px; background-color: #242525; color: #ffffff; font-size: 14px; }
+.page {
+  width: 192px;
+  min-height: 490px;
+  background-color: #000000;
+  flex-direction: column;
+}
+
+.memo {
+  padding: 24px 16px 34px;
+  flex-direction: column;
+}
+
+.header,
+.tools,
+.key-row {
+  flex-direction: row;
+  align-items: center;
+}
+
+.header {
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.title,
+.note,
+.typed {
+  color: #ffffff;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.count,
+.hint,
+.time,
+.language-hint {
+  color: #8e99ac;
+  font-size: 14px;
+}
+
+.new-note {
+  width: 160px;
+  height: 42px;
+  border-radius: 21px;
+  font-size: 16px;
+  color: #ffffff;
+  background-color: #246bff;
+}
+
+.hint {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.list {
+  flex: 1;
+  margin-top: 14px;
+}
+
+.item {
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 12px;
+  background-color: #1d2330;
+  flex-direction: column;
+}
+
+.note {
+  font-size: 18px;
+}
+
+.time {
+  margin-top: 4px;
+}
+
+.keyboard-page {
+  width: 192px;
+  min-height: 490px;
+  padding-top: 22px;
+  align-items: center;
+  flex-direction: column;
+}
+
+.input-box {
+  width: 160px;
+  height: 48px;
+  padding: 8px;
+  border-radius: 16px;
+  border-width: 2px;
+  border-color: #246bff;
+  background-color: #101827;
+  justify-content: center;
+}
+
+.typed {
+  font-size: 16px;
+}
+
+.tools {
+  width: 166px;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.tool {
+  height: 34px;
+  border-radius: 17px;
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.lang,
+.done {
+  width: 48px;
+  background-color: #246bff;
+}
+
+.clear {
+  width: 56px;
+  background-color: #e03a3a;
+}
+
+.language-hint {
+  height: 18px;
+  margin-top: 4px;
+}
+
+.keys {
+  width: 192px;
+  height: 290px;
+  margin-top: 8px;
+  padding-top: 20px;
+  background-color: #080808;
+  align-items: center;
+  flex-direction: column;
+}
+
+.key-row {
+  justify-content: center;
+  height: 64px;
+}
+
+.row-two {
+  padding-left: 14px;
+}
+
+.row-three {
+  padding-left: 22px;
+}
+
+.key,
+.backspace {
+  width: 42px;
+  height: 42px;
+  margin-right: 3px;
+  border-radius: 21px;
+  background-color: #242525;
+  color: #ffffff;
+  font-size: 22px;
+}
+
+.backspace {
+  background-color: #343434;
+  font-size: 19px;
+}
+
+.space {
+  width: 120px;
+  height: 34px;
+  margin-top: 6px;
+  border-radius: 17px;
+  background-color: #242525;
+  color: #ffffff;
+  font-size: 14px;
+}
 </style>

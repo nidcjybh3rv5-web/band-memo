@@ -1,0 +1,8 @@
+# AIoT-IDE build output and signing material
+sign/
+dist/
+*.rpk
+*.pem
+
+# Local Node.js installation
+node_modules/

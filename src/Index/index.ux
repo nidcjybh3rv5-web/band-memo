@@ -68,121 +68,98 @@
     >
 
       <div class="input-box">
-        <text class="typed">
-          {{draft || '輸入備忘…'}}
-        </text>
+        <text class="typed">{{draft || imeBuffer || '輸入備忘…'}}</text>
       </div>
 
-      <div class="tools">
-
-        <input
-          class="tool cancel"
-          type="button"
-          value="取消"
-          @click="cancelEdit"
-        />
-
-        <input
-          class="tool clear"
-          type="button"
-          value="清除"
-          @click="clearDraft"
-        />
-
-        <input
-          class="tool done"
-          type="button"
-          value="{{isSaving ? '儲存中' : '儲存'}}"
-          @click="saveDraft"
-        />
-
+      <div class="mode-row">
+        <input class="mode-btn" type="button" value="ABC" @click="setABC" />
+        <input class="mode-btn" type="button" value="拼音" @click="setPinyin" />
+        <input class="mode-btn" type="button" value="注音" @click="setZhuyin" />
+        <input class="script-btn" type="button" value="{{scriptMode === 'trad' ? '繁' : '簡'}}" @click="toggleScript" />
       </div>
 
-      <text
-        class="status"
-        if="{{status}}"
-      >
-        {{status}}
+      <div class="candidate-row" if="{{imeMode !== 'abc' && candidates.length > 0}}">
+        <input
+          class="candidate"
+          type="button"
+          for="{{candidates}}"
+          value="{{$item}}"
+          @click="chooseCandidate($item)"
+        />
+      </div>
+
+      <text class="ime-hint" if="{{imeMode !== 'abc' && imeBuffer}}">
+        {{imeBuffer}}
       </text>
 
-      <input
-        class="delete"
-        type="button"
-        if="{{editingId && !deleteArmed}}"
-        value="刪除這則備忘"
-        @click="requestDelete"
-      />
+      <div class="tools">
+        <input class="tool cancel" type="button" value="取消" @click="cancelEdit" />
+        <input class="tool clear" type="button" value="清除" @click="clearDraft" />
+        <input class="tool done" type="button" value="{{isSaving ? '儲存中' : '儲存'}}" @click="saveDraft" />
+      </div>
 
-      <input
-        class="delete confirm-delete"
-        type="button"
-        if="{{editingId && deleteArmed}}"
-        value="再按一次確認刪除"
-        @click="deleteNote"
-      />
+      <text class="status" if="{{status}}">{{status}}</text>
 
-      <div class="keys">
+      <input class="delete" type="button" if="{{editingId && !deleteArmed}}" value="刪除這則備忘" @click="requestDelete" />
+      <input class="delete confirm-delete" type="button" if="{{editingId && deleteArmed}}" value="再按一次確認刪除" @click="deleteNote" />
 
-        <div class="key-row row-one">
+      <div class="keys qwerty-keys" if="{{imeMode === 'abc' || imeMode === 'pinyin'}}">
+        <div class="key-row">
           <input class="key" type="button" value="Q" @click="typeKey" />
           <input class="key" type="button" value="W" @click="typeKey" />
           <input class="key" type="button" value="E" @click="typeKey" />
           <input class="key" type="button" value="R" @click="typeKey" />
           <input class="key" type="button" value="T" @click="typeKey" />
         </div>
-
-        <div class="key-row row-two">
+        <div class="key-row">
           <input class="key" type="button" value="Y" @click="typeKey" />
           <input class="key" type="button" value="U" @click="typeKey" />
           <input class="key" type="button" value="I" @click="typeKey" />
           <input class="key" type="button" value="O" @click="typeKey" />
           <input class="key" type="button" value="P" @click="typeKey" />
         </div>
-
-        <div class="key-row row-three">
+        <div class="key-row">
           <input class="key" type="button" value="A" @click="typeKey" />
           <input class="key" type="button" value="S" @click="typeKey" />
           <input class="key" type="button" value="D" @click="typeKey" />
           <input class="key" type="button" value="F" @click="typeKey" />
           <input class="key" type="button" value="G" @click="typeKey" />
         </div>
-
-        <div class="key-row row-four">
+        <div class="key-row">
           <input class="key" type="button" value="H" @click="typeKey" />
           <input class="key" type="button" value="J" @click="typeKey" />
           <input class="key" type="button" value="K" @click="typeKey" />
           <input class="key" type="button" value="L" @click="typeKey" />
         </div>
-
-        <div class="key-row row-five">
+        <div class="key-row">
           <input class="key" type="button" value="Z" @click="typeKey" />
           <input class="key" type="button" value="X" @click="typeKey" />
           <input class="key" type="button" value="C" @click="typeKey" />
           <input class="key" type="button" value="V" @click="typeKey" />
           <input class="key" type="button" value="B" @click="typeKey" />
         </div>
-
-        <div class="key-row row-six">
+        <div class="key-row">
           <input class="key" type="button" value="N" @click="typeKey" />
           <input class="key" type="button" value="M" @click="typeKey" />
-
-          <input
-            class="backspace"
-            type="button"
-            value="⌫"
-            @click="backspace"
-          />
         </div>
-
-        <input
-          class="space"
-          type="button"
-          value="空白"
-          @click="space"
-        />
-
       </div>
 
+      <div class="keys zhuyin-keys" if="{{imeMode === 'zhuyin'}}">
+        <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄅ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄆ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄇ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄈ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄉ" @click="typeZhuyin" /></div>
+        <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄊ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄋ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄌ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄍ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄎ" @click="typeZhuyin" /></div>
+        <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄏ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄐ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄑ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄒ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄓ" @click="typeZhuyin" /></div>
+        <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄔ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄕ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄖ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄗ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄘ" @click="typeZhuyin" /></div>
+        <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄙ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄚ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄛ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄜ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄝ" @click="typeZhuyin" /></div>
+        <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄞ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄟ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄠ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄡ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄢ" @click="typeZhuyin" /></div>
+        <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄣ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄤ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄥ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄦ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄧ" @click="typeZhuyin" /></div>
+        <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄨ" @click="typeZhuyin" /><input class="zkey" type="button" value="ㄩ" @click="typeZhuyin" /></div>
+        <div class="tone-row"><input class="tone" type="button" value="˙" @click="typeZhuyin" /><input class="tone" type="button" value="ˊ" @click="typeZhuyin" /><input class="tone" type="button" value="ˇ" @click="typeZhuyin" /><input class="tone" type="button" value="ˋ" @click="typeZhuyin" /></div>
+      </div>
+
+      <div class="keyboard-actions">
+        <input class="space" type="button" value="空白" @click="space" />
+        <input class="backspace" type="button" value="⌫" @click="backspace" />
+      </div>
     </div>
 
   </div>
@@ -270,6 +247,61 @@ function formatTime(now) {
 }
 
 
+const PINYIN = {
+  ni:'你妳尼呢泥逆', hao:'好號号浩豪', wo:'我握窩窝喔', shi:'是時时事市十試试', de:'的得德地',
+  bu:'不部步補补布', yi:'一以已意衣醫医', ge:'個个各歌哥格', ren:'人任認认仁', zai:'在再載载',
+  jian:'見见間间件建簡简', tian:'天田填甜', qi:'起氣气七其期', ta:'他她它塔', men:'們们門门',
+  ma:'嗎吗馬马嘛', ba:'把八爸吧', da:'大打達达', xiao:'小笑校消', xue:'學学雪', sheng:'生聲声升',
+  ri:'日', yue:'月越約约', kai:'開开', guan:'關关觀观', ji:'記记機机幾几己', zhu:'住主助注',
+  wang:'忘網网王', xin:'心新信', xi:'喜系細细西', huan:'歡欢還还環环', ying:'英應应影',
+  yu:'語语雨魚鱼', wen:'文問问', hua:'話话花畫画', shui:'水誰谁睡', huo:'活火或', shen:'什神身深',
+  me:'麼么么', zi:'字自子', ci:'次此詞词', ming:'明名命', bai:'白百', zhong:'中種种重',
+  guo:'國国果過过', tai:'臺台太態态', wan:'灣湾完晚玩', xie:'寫写謝谢谢', zhe:'這这者著着',
+  dao:'到道倒', le:'了樂乐', ye:'也業业夜', he:'和喝何', cheng:'成城程', du:'讀读度都',
+  shu:'書书數数', ke:'可課课科', yao:'要藥药', xiang:'想相向像', kan:'看', ting:'聽听',
+  shuo:'說说', liao:'聊料', dian:'點点電电店', nao:'腦脑', zhi:'知只紙纸直', chi:'吃持',
+  fan:'飯饭反返', jin:'今近進进', zao:'早造', an:'安', quan:'全權权', lin:'林', lao:'老',
+  shi2:'師师時时', tong:'同通統统', peng:'朋', you:'友有又', bei:'備备北', de2:'的得地',
+  ju:'句具', chang:'長长常場场', mei:'每美沒没', xu:'需許许', juan:'卷', ai:'愛爱',
+  xian:'先現现', tiao:'條条', jia:'家加假', shou:'手首', zheng:'正整', li:'理', fang:'方房',
+  bian:'便變变', xing:'行形興兴', lu:'路', di:'地第弟', er:'二兒儿', san:'三', si:'四', wu:'五',
+  liu:'六', jiu:'九'
+};
+
+const PHRASES = {
+  nihao:'你好', xiexie:'謝謝', zaijian:'再見', jintian:'今天', tianqi:'天氣', xiaomi:'小米',
+  suji:'速記', woai:'我愛', keyi:'可以', meiyou:'沒有', xianzai:'現在', chifan:'吃飯',
+  shangxue:'上學', laoshi:'老師', tongxue:'同學', zhongguo:'中國', taiwan:'台灣',
+  beizhu:'備註', shuru:'輸入', shanchu:'刪除', baocun:'保存', shezhi:'設置'
+};
+
+const ZHUYIN_TO_PINYIN = {
+  'ㄋㄧ':'ni','ㄏㄠ':'hao','ㄨㄛ':'wo','ㄕ':'shi','ㄕˋ':'shi','ㄉㄜ':'de','ㄅㄨ':'bu','ㄧ':'yi',
+  'ㄍㄜ':'ge','ㄖㄣ':'ren','ㄗㄞ':'zai','ㄐㄧㄢ':'jian','ㄊㄧㄢ':'tian','ㄑㄧ':'qi','ㄊㄚ':'ta',
+  'ㄇㄣ':'men','ㄇㄚ':'ma','ㄅㄚ':'ba','ㄉㄚ':'da','ㄒㄧㄠ':'xiao','ㄒㄩㄝ':'xue','ㄕㄥ':'sheng',
+  'ㄖˋ':'ri','ㄩㄝ':'yue','ㄎㄞ':'kai','ㄍㄨㄢ':'guan','ㄐㄧ':'ji','ㄓㄨ':'zhu','ㄨㄤ':'wang',
+  'ㄒㄧㄣ':'xin','ㄏㄨㄢ':'huan','ㄧㄥ':'ying','ㄩˇ':'yu','ㄨㄣ':'wen','ㄏㄨㄚ':'hua','ㄕㄨㄟ':'shui',
+  'ㄏㄨㄛ':'huo','ㄕㄣ':'shen','ㄇㄜ':'me','ㄗ':'zi','ㄘ':'ci','ㄇㄧㄥ':'ming','ㄅㄞ':'bai','ㄓㄨㄥ':'zhong',
+  'ㄍㄨㄛ':'guo','ㄊㄞ':'tai','ㄨㄢ':'wan','ㄒㄧㄝ':'xie','ㄓㄜ':'zhe','ㄉㄠ':'dao','ㄌㄜ':'le',
+  'ㄧㄝ':'ye','ㄏㄜ':'he','ㄔㄥ':'cheng','ㄉㄨ':'du','ㄕㄨ':'shu','ㄎㄜ':'ke','ㄧㄠ':'yao','ㄒㄧㄤ':'xiang',
+  'ㄎㄢ':'kan','ㄊㄧㄥ':'ting','ㄕㄨㄛ':'shuo','ㄉㄧㄢ':'dian','ㄋㄠ':'nao','ㄓ':'zhi','ㄔ':'chi',
+  'ㄈㄢ':'fan','ㄐㄧㄣ':'jin','ㄗㄠ':'zao','ㄢ':'an','ㄑㄩㄢ':'quan','ㄊㄨㄥ':'tong','ㄆㄥ':'peng',
+  'ㄧㄡ':'you','ㄅㄟ':'bei','ㄐㄩ':'ju','ㄓㄤ':'zhang','ㄇㄟ':'mei','ㄒㄩ':'xu','ㄞ':'ai','ㄒㄧㄢ':'xian',
+  'ㄊㄧㄠ':'tiao','ㄐㄧㄚ':'jia','ㄕㄡ':'shou','ㄓㄥ':'zheng','ㄈㄤ':'fang','ㄅㄧㄢ':'bian','ㄒㄧㄥ':'xing',
+  'ㄌㄨ':'lu','ㄉㄧ':'di','ㄦ':'er','ㄙㄢ':'san','ㄙ':'si','ㄨ':'wu','ㄌㄧㄡ':'liu','ㄐㄧㄡ':'jiu'
+};
+
+const SIMPLE_MAP = {
+  '時':'时','間':'间','見':'见','試':'试','個':'个','認':'认','載':'载','開':'开','關':'关','觀':'观',
+  '記':'记','機':'机','幾':'几','醫':'医','網':'网','細':'细','歡':'欢','還':'还','環':'环','應':'应',
+  '語':'语','問':'问','話':'话','誰':'谁','畫':'画','學':'学','與':'与','這':'这','著':'着','樂':'乐',
+  '業':'业','讀':'读','書':'书','數':'数','課':'课','藥':'药','說':'说','點':'点','電':'电','腦':'脑',
+  '紙':'纸','飯':'饭','進':'进','聽':'听','條':'条','愛':'爱','現':'现','場':'场','長':'长','變':'变',
+  '興':'兴','師':'师','統':'统','備':'备','臺':'台','灣':'湾','國':'国','刪':'删','輸':'输','儲':'储',
+  '選':'选','擇':'择','簡':'简','測':'测','鍵':'键','盤':'盘','後':'后','體':'体','們':'们','門':'门',
+  '嗎':'吗','馬':'马','麼':'么','謝':'谢','寫':'写','憶':'忆','當':'当','註':'注','設':'设'
+};
+
 export default {
 
   private: {
@@ -280,6 +312,10 @@ export default {
     emptyMessage: '點選新增，輸入你的備忘',
     mode: 'memo',
     draft: '',
+    imeMode: 'abc',
+    scriptMode: 'trad',
+    imeBuffer: '',
+    candidates: [],
     editingId: '',
     deleteArmed: false,
     isSaving: false,
@@ -434,9 +470,96 @@ export default {
     })
   },
 
+  toSimplified(text) {
+    return text.split('').map(function(ch) {
+      return SIMPLE_MAP[ch] || ch
+    }).join('')
+  },
+
+  getCandidates(buffer) {
+    const key = buffer.toLowerCase()
+    let list = []
+
+    if (PHRASES[key]) {
+      list.push(PHRASES[key])
+    }
+
+    if (PINYIN[key]) {
+      list = list.concat(PINYIN[key].split(''))
+    }
+
+    if (this.scriptMode === 'simp') {
+      list = list.map(item => this.toSimplified(item))
+    }
+
+    return list.slice(0, 8)
+  },
+
+  refreshCandidates() {
+    if (this.imeMode === 'abc' || !this.imeBuffer) {
+      this.candidates = []
+      return
+    }
+
+    if (this.imeMode === 'pinyin') {
+      this.candidates = this.getCandidates(this.imeBuffer)
+      return
+    }
+
+    const normalized = this.imeBuffer.replace(/[˙ˊˇˋ]/g, '')
+    const pinyin = ZHUYIN_TO_PINYIN[this.imeBuffer] || ZHUYIN_TO_PINYIN[normalized] || ''
+    this.candidates = pinyin ? this.getCandidates(pinyin) : []
+  },
+
+  setABC() {
+    this.setInputMode('abc')
+  },
+
+  setPinyin() {
+    this.setInputMode('pinyin')
+  },
+
+  setZhuyin() {
+    this.setInputMode('zhuyin')
+  },
+
+  setInputMode(mode) {
+    if (mode !== 'abc' && mode !== 'pinyin' && mode !== 'zhuyin') {
+      return
+    }
+
+    this.imeMode = mode
+    this.imeBuffer = ''
+    this.candidates = []
+    this.status = ''
+  },
+
+  toggleScript() {
+    this.scriptMode = this.scriptMode === 'trad' ? 'simp' : 'trad'
+    this.refreshCandidates()
+  },
+
+  chooseCandidate(candidate) {
+    if (typeof candidate !== 'string' || !candidate) {
+      return
+    }
+
+    if (this.draft.length + candidate.length > MAX_TEXT_LENGTH) {
+      return
+    }
+
+    this.draft += candidate
+    this.imeBuffer = ''
+    this.candidates = []
+  },
+
   openKeyboard() {
     this.mode = 'keyboard'
     this.draft = ''
+    this.imeMode = 'abc'
+    this.scriptMode = 'trad'
+    this.imeBuffer = ''
+    this.candidates = []
     this.editingId = ''
     this.deleteArmed = false
     this.status = ''
@@ -444,34 +567,58 @@ export default {
 
 
   typeKey(event) {
-
-    if (
-      event &&
-      typeof event.value === 'string' &&
-      this.draft.length < MAX_TEXT_LENGTH
-    ) {
-      this.draft += event.value
+    if (!event || typeof event.value !== 'string' || !event.value) {
+      return
     }
 
+    const value = event.value
+
+    if (this.imeMode === 'abc') {
+      if (this.draft.length < MAX_TEXT_LENGTH) {
+        this.draft += value
+      }
+      return
+    }
+
+    if (this.imeBuffer.length < 12) {
+      this.imeBuffer += value
+      this.refreshCandidates()
+    }
   },
 
 
   space() {
+    if (this.imeMode !== 'abc' && this.imeBuffer) {
+      if (this.candidates.length > 0) {
+        this.chooseCandidate(this.candidates[0])
+      } else {
+        this.imeBuffer = ''
+        this.candidates = []
+      }
+      return
+    }
 
     if (this.draft.length < MAX_TEXT_LENGTH) {
       this.draft += ' '
     }
-
   },
 
 
   backspace() {
+    if (this.imeMode !== 'abc' && this.imeBuffer) {
+      this.imeBuffer = this.imeBuffer.slice(0, -1)
+      this.refreshCandidates()
+      return
+    }
+
     this.draft = this.draft.slice(0, -1)
   },
 
 
   clearDraft() {
     this.draft = ''
+    this.imeBuffer = ''
+    this.candidates = []
   },
 
 
@@ -482,6 +629,9 @@ export default {
 
     this.mode = 'keyboard'
     this.draft = note.text
+    this.imeMode = 'abc'
+    this.imeBuffer = ''
+    this.candidates = []
     this.editingId = note.id
     this.touchNote(note.id)
     this.deleteArmed = false
@@ -496,6 +646,8 @@ export default {
 
     this.mode = 'memo'
     this.draft = ''
+    this.imeBuffer = ''
+    this.candidates = []
     this.editingId = ''
     this.deleteArmed = false
     this.status = ''
@@ -518,7 +670,13 @@ export default {
       return
     }
 
-    const text = this.draft.trim()
+    let text = this.draft
+
+    if (this.imeMode !== 'abc' && this.imeBuffer && this.candidates.length > 0) {
+      text += this.candidates[0]
+    }
+
+    text = text.trim()
 
     if (!text) {
       return
@@ -588,6 +746,8 @@ export default {
         self.isSaving = false
         self.mode = 'memo'
         self.draft = ''
+        self.imeBuffer = ''
+        self.candidates = []
         self.editingId = ''
         self.deleteArmed = false
         self.status = successMessage
@@ -745,16 +905,15 @@ export default {
 .keyboard-page {
   width: 192px;
   min-height: 490px;
-  padding-top: 22px;
+  padding-top: 15px;
   align-items: center;
   flex-direction: column;
 }
 
-
 .input-box {
   width: 160px;
-  height: 48px;
-  padding: 8px;
+  height: 44px;
+  padding: 6px 8px;
   border-radius: 16px;
   border-width: 2px;
   border-color: #246bff;
@@ -762,18 +921,67 @@ export default {
   justify-content: center;
 }
 
-
 .typed {
-  font-size: 16px;
+  font-size: 15px;
 }
 
+.mode-row {
+  width: 160px;
+  height: 30px;
+  margin-top: 5px;
+  justify-content: space-between;
+  flex-direction: row;
+}
+
+.mode-btn,
+.script-btn {
+  height: 30px;
+  border-radius: 15px;
+  color: #ffffff;
+  background-color: #242525;
+  font-size: 12px;
+}
+
+.mode-btn {
+  width: 44px;
+}
+
+.script-btn {
+  width: 34px;
+  background-color: #246bff;
+}
+
+.candidate-row {
+  width: 160px;
+  height: 29px;
+  margin-top: 3px;
+  justify-content: space-between;
+  flex-direction: row;
+}
+
+.candidate {
+  width: 18px;
+  height: 28px;
+  border-radius: 14px;
+  background-color: #343434;
+  color: #ffffff;
+  font-size: 15px;
+}
+
+.ime-hint {
+  width: 160px;
+  height: 15px;
+  margin-top: 1px;
+  color: #8e99ac;
+  font-size: 11px;
+  text-align: center;
+}
 
 .tools {
   width: 160px;
   justify-content: space-between;
-  margin-top: 10px;
+  margin-top: 4px;
 }
-
 
 .tool {
   height: 34px;
@@ -782,87 +990,129 @@ export default {
   font-size: 14px;
 }
 
-
 .cancel,
 .done {
-  width: 48px;
+  width: 50px;
   background-color: #246bff;
 }
 
-
 .clear {
-  width: 48px;
+  width: 50px;
   background-color: #e03a3a;
 }
 
-
 .status {
-  height: 18px;
-  margin-top: 4px;
+  height: 16px;
+  margin-top: 1px;
   text-align: center;
 }
 
-
 .delete {
   width: 120px;
-  height: 28px;
-  margin-top: 2px;
+  height: 27px;
+  margin-top: 1px;
   border-radius: 14px;
   background-color: #742c2c;
   color: #ffffff;
   font-size: 13px;
 }
 
-
 .confirm-delete {
   background-color: #e03a3a;
 }
 
-
 .keys {
   width: 192px;
-  height: 250px;
-  margin-top: 4px;
-  padding-top: 8px;
-  background-color: #080808;
   align-items: center;
   flex-direction: column;
+  background-color: #080808;
 }
 
+.qwerty-keys {
+  height: 226px;
+  margin-top: 2px;
+  padding-top: 2px;
+}
+
+.zhuyin-keys {
+  height: 252px;
+  margin-top: 2px;
+  padding-top: 1px;
+}
 
 .key-row {
   justify-content: center;
   height: 37px;
+  flex-direction: row;
+  align-items: center;
 }
 
-
-.key,
-.backspace {
-  width: 32px;
-  height: 32px;
+.key {
+  width: 34px;
+  height: 34px;
   margin-right: 2px;
-  border-radius: 16px;
+  border-radius: 17px;
   background-color: #242525;
   color: #ffffff;
   font-size: 16px;
 }
 
-
-.backspace {
-  width: 50px;
-  background-color: #343434;
-  font-size: 16px;
+.zhuyin-row {
+  height: 28px;
 }
 
-
-.space {
-  width: 110px;
-  height: 30px;
-  margin-top: 3px;
-  border-radius: 15px;
+.zkey {
+  width: 28px;
+  height: 28px;
+  margin-right: 2px;
+  border-radius: 14px;
   background-color: #242525;
+  color: #ffffff;
+  font-size: 15px;
+}
+
+.tone-row {
+  width: 160px;
+  height: 27px;
+  justify-content: center;
+  flex-direction: row;
+  align-items: center;
+}
+
+.tone {
+  width: 32px;
+  height: 25px;
+  margin-right: 4px;
+  border-radius: 13px;
+  background-color: #343434;
   color: #ffffff;
   font-size: 14px;
 }
 
+.keyboard-actions {
+  width: 160px;
+  height: 36px;
+  margin-top: 2px;
+  justify-content: center;
+  flex-direction: row;
+}
+
+.space {
+  width: 102px;
+  height: 33px;
+  margin-right: 6px;
+  border-radius: 17px;
+  background-color: #242525;
+  color: #ffffff;
+  font-size: 13px;
+}
+
+.backspace {
+  width: 50px;
+  height: 33px;
+  border-radius: 17px;
+  background-color: #343434;
+  color: #ffffff;
+  font-size: 16px;
+}
 </style>

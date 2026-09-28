@@ -7,5 +7,9 @@
     "build": "aiot build --enable-jsc",
     "release": "aiot release --enable-jsc",
     "validate": "node scripts/validate-project.js"
+  },
+  "devDependencies": {
+    "aiot-toolkit": "2.0.5",
+    "@aiot-toolkit/jsc": "^1.0.8"
   }
 }

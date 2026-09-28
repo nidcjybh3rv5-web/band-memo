@@ -36,7 +36,15 @@ jobs:
           npm --version
 
       - name: Build RPK
-        run: npm run build
+        run: |
+          set -e
+          npm run build
+          if [ ! -d build ]; then
+            echo "::error::AIoT build did not create the build directory."
+            exit 1
+          fi
+          echo "AIoT build output:"
+          find build -maxdepth 4 -type f -print | sort
 
       - name: Find RPK output
         shell: bash

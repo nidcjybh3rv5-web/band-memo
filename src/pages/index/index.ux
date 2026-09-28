@@ -105,55 +105,55 @@
 
       <div class="keys qwerty-keys" if="{{imeMode === 'abc' || imeMode === 'pinyin'}}">
         <div class="key-row">
-          <input class="key" type="button" value="Q" @click="typeKey('Q') />
-          <input class="key" type="button" value="W" @click="typeKey('W') />
-          <input class="key" type="button" value="E" @click="typeKey('E') />
-          <input class="key" type="button" value="R" @click="typeKey('R') />
-          <input class="key" type="button" value="T" @click="typeKey('T') />
+          <input class="key" type="button" value="Q" @click="typeKey('Q')" />
+          <input class="key" type="button" value="W" @click="typeKey('W')" />
+          <input class="key" type="button" value="E" @click="typeKey('E')" />
+          <input class="key" type="button" value="R" @click="typeKey('R')" />
+          <input class="key" type="button" value="T" @click="typeKey('T')" />
         </div>
         <div class="key-row">
-          <input class="key" type="button" value="Y" @click="typeKey('Y') />
-          <input class="key" type="button" value="U" @click="typeKey('U') />
-          <input class="key" type="button" value="I" @click="typeKey('I') />
-          <input class="key" type="button" value="O" @click="typeKey('O') />
-          <input class="key" type="button" value="P" @click="typeKey('P') />
+          <input class="key" type="button" value="Y" @click="typeKey('Y')" />
+          <input class="key" type="button" value="U" @click="typeKey('U')" />
+          <input class="key" type="button" value="I" @click="typeKey('I')" />
+          <input class="key" type="button" value="O" @click="typeKey('O')" />
+          <input class="key" type="button" value="P" @click="typeKey('P')" />
         </div>
         <div class="key-row">
-          <input class="key" type="button" value="A" @click="typeKey('A') />
-          <input class="key" type="button" value="S" @click="typeKey('S') />
-          <input class="key" type="button" value="D" @click="typeKey('D') />
-          <input class="key" type="button" value="F" @click="typeKey('F') />
-          <input class="key" type="button" value="G" @click="typeKey('G') />
+          <input class="key" type="button" value="A" @click="typeKey('A')" />
+          <input class="key" type="button" value="S" @click="typeKey('S')" />
+          <input class="key" type="button" value="D" @click="typeKey('D')" />
+          <input class="key" type="button" value="F" @click="typeKey('F')" />
+          <input class="key" type="button" value="G" @click="typeKey('G')" />
         </div>
         <div class="key-row">
-          <input class="key" type="button" value="H" @click="typeKey('H') />
-          <input class="key" type="button" value="J" @click="typeKey('J') />
-          <input class="key" type="button" value="K" @click="typeKey('K') />
-          <input class="key" type="button" value="L" @click="typeKey('L') />
+          <input class="key" type="button" value="H" @click="typeKey('H')" />
+          <input class="key" type="button" value="J" @click="typeKey('J')" />
+          <input class="key" type="button" value="K" @click="typeKey('K')" />
+          <input class="key" type="button" value="L" @click="typeKey('L')" />
         </div>
         <div class="key-row">
-          <input class="key" type="button" value="Z" @click="typeKey('Z') />
-          <input class="key" type="button" value="X" @click="typeKey('X') />
-          <input class="key" type="button" value="C" @click="typeKey('C') />
-          <input class="key" type="button" value="V" @click="typeKey('V') />
-          <input class="key" type="button" value="B" @click="typeKey('B') />
+          <input class="key" type="button" value="Z" @click="typeKey('Z')" />
+          <input class="key" type="button" value="X" @click="typeKey('X')" />
+          <input class="key" type="button" value="C" @click="typeKey('C')" />
+          <input class="key" type="button" value="V" @click="typeKey('V')" />
+          <input class="key" type="button" value="B" @click="typeKey('B')" />
         </div>
         <div class="key-row">
-          <input class="key" type="button" value="N" @click="typeKey('N') />
-          <input class="key" type="button" value="M" @click="typeKey('M') />
+          <input class="key" type="button" value="N" @click="typeKey('N')" />
+          <input class="key" type="button" value="M" @click="typeKey('M')" />
         </div>
       </div>
 
       <div class="keys zhuyin-keys" if="{{imeMode === 'zhuyin'}}">
-        <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄅ" @click="typeZhuyin('ㄅ') /><input class="zkey" type="button" value="ㄆ" @click="typeZhuyin('ㄆ') /><input class="zkey" type="button" value="ㄇ" @click="typeZhuyin('ㄇ') /><input class="zkey" type="button" value="ㄈ" @click="typeZhuyin('ㄈ') /><input class="zkey" type="button" value="ㄉ" @click="typeZhuyin('ㄉ') /></div>
-        <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄊ" @click="typeZhuyin('ㄊ') /><input class="zkey" type="button" value="ㄋ" @click="typeZhuyin('ㄋ') /><input class="zkey" type="button" value="ㄌ" @click="typeZhuyin('ㄌ') /><input class="zkey" type="button" value="ㄍ" @click="typeZhuyin('ㄍ') /><input class="zkey" type="button" value="ㄎ" @click="typeZhuyin('ㄎ') /></div>
-        <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄏ" @click="typeZhuyin('ㄏ') /><input class="zkey" type="button" value="ㄐ" @click="typeZhuyin('ㄐ') /><input class="zkey" type="button" value="ㄑ" @click="typeZhuyin('ㄑ') /><input class="zkey" type="button" value="ㄒ" @click="typeZhuyin('ㄒ') /><input class="zkey" type="button" value="ㄓ" @click="typeZhuyin('ㄓ') /></div>
-        <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄔ" @click="typeZhuyin('ㄔ') /><input class="zkey" type="button" value="ㄕ" @click="typeZhuyin('ㄕ') /><input class="zkey" type="button" value="ㄖ" @click="typeZhuyin('ㄖ') /><input class="zkey" type="button" value="ㄗ" @click="typeZhuyin('ㄗ') /><input class="zkey" type="button" value="ㄘ" @click="typeZhuyin('ㄘ') /></div>
-        <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄙ" @click="typeZhuyin('ㄙ') /><input class="zkey" type="button" value="ㄚ" @click="typeZhuyin('ㄚ') /><input class="zkey" type="button" value="ㄛ" @click="typeZhuyin('ㄛ') /><input class="zkey" type="button" value="ㄜ" @click="typeZhuyin('ㄜ') /><input class="zkey" type="button" value="ㄝ" @click="typeZhuyin('ㄝ') /></div>
-        <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄞ" @click="typeZhuyin('ㄞ') /><input class="zkey" type="button" value="ㄟ" @click="typeZhuyin('ㄟ') /><input class="zkey" type="button" value="ㄠ" @click="typeZhuyin('ㄠ') /><input class="zkey" type="button" value="ㄡ" @click="typeZhuyin('ㄡ') /><input class="zkey" type="button" value="ㄢ" @click="typeZhuyin('ㄢ') /></div>
-        <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄣ" @click="typeZhuyin('ㄣ') /><input class="zkey" type="button" value="ㄤ" @click="typeZhuyin('ㄤ') /><input class="zkey" type="button" value="ㄥ" @click="typeZhuyin('ㄥ') /><input class="zkey" type="button" value="ㄦ" @click="typeZhuyin('ㄦ') /><input class="zkey" type="button" value="ㄧ" @click="typeZhuyin('ㄧ') /></div>
-        <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄨ" @click="typeZhuyin('ㄨ') /><input class="zkey" type="button" value="ㄩ" @click="typeZhuyin('ㄩ') /></div>
-        <div class="tone-row"><input class="tone" type="button" value="˙" @click="typeZhuyin('˙') /><input class="tone" type="button" value="ˊ" @click="typeZhuyin('ˊ') /><input class="tone" type="button" value="ˇ" @click="typeZhuyin('ˇ') /><input class="tone" type="button" value="ˋ" @click="typeZhuyin('ˋ') /></div>
+        <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄅ" @click="typeZhuyin('ㄅ')" /><input class="zkey" type="button" value="ㄆ" @click="typeZhuyin('ㄆ')" /><input class="zkey" type="button" value="ㄇ" @click="typeZhuyin('ㄇ')" /><input class="zkey" type="button" value="ㄈ" @click="typeZhuyin('ㄈ')" /><input class="zkey" type="button" value="ㄉ" @click="typeZhuyin('ㄉ')" /></div>
+        <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄊ" @click="typeZhuyin('ㄊ')" /><input class="zkey" type="button" value="ㄋ" @click="typeZhuyin('ㄋ')" /><input class="zkey" type="button" value="ㄌ" @click="typeZhuyin('ㄌ')" /><input class="zkey" type="button" value="ㄍ" @click="typeZhuyin('ㄍ')" /><input class="zkey" type="button" value="ㄎ" @click="typeZhuyin('ㄎ')" /></div>
+        <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄏ" @click="typeZhuyin('ㄏ')" /><input class="zkey" type="button" value="ㄐ" @click="typeZhuyin('ㄐ')" /><input class="zkey" type="button" value="ㄑ" @click="typeZhuyin('ㄑ')" /><input class="zkey" type="button" value="ㄒ" @click="typeZhuyin('ㄒ')" /><input class="zkey" type="button" value="ㄓ" @click="typeZhuyin('ㄓ')" /></div>
+        <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄔ" @click="typeZhuyin('ㄔ')" /><input class="zkey" type="button" value="ㄕ" @click="typeZhuyin('ㄕ')" /><input class="zkey" type="button" value="ㄖ" @click="typeZhuyin('ㄖ')" /><input class="zkey" type="button" value="ㄗ" @click="typeZhuyin('ㄗ')" /><input class="zkey" type="button" value="ㄘ" @click="typeZhuyin('ㄘ')" /></div>
+        <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄙ" @click="typeZhuyin('ㄙ')" /><input class="zkey" type="button" value="ㄚ" @click="typeZhuyin('ㄚ')" /><input class="zkey" type="button" value="ㄛ" @click="typeZhuyin('ㄛ')" /><input class="zkey" type="button" value="ㄜ" @click="typeZhuyin('ㄜ')" /><input class="zkey" type="button" value="ㄝ" @click="typeZhuyin('ㄝ')" /></div>
+        <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄞ" @click="typeZhuyin('ㄞ')" /><input class="zkey" type="button" value="ㄟ" @click="typeZhuyin('ㄟ')" /><input class="zkey" type="button" value="ㄠ" @click="typeZhuyin('ㄠ')" /><input class="zkey" type="button" value="ㄡ" @click="typeZhuyin('ㄡ')" /><input class="zkey" type="button" value="ㄢ" @click="typeZhuyin('ㄢ')" /></div>
+        <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄣ" @click="typeZhuyin('ㄣ')" /><input class="zkey" type="button" value="ㄤ" @click="typeZhuyin('ㄤ')" /><input class="zkey" type="button" value="ㄥ" @click="typeZhuyin('ㄥ')" /><input class="zkey" type="button" value="ㄦ" @click="typeZhuyin('ㄦ')" /><input class="zkey" type="button" value="ㄧ" @click="typeZhuyin('ㄧ')" /></div>
+        <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄨ" @click="typeZhuyin('ㄨ')" /><input class="zkey" type="button" value="ㄩ" @click="typeZhuyin('ㄩ')" /></div>
+        <div class="tone-row"><input class="tone" type="button" value="˙" @click="typeZhuyin('˙')" /><input class="tone" type="button" value="ˊ" @click="typeZhuyin('ˊ')" /><input class="tone" type="button" value="ˇ" @click="typeZhuyin('ˇ')" /><input class="tone" type="button" value="ˋ" @click="typeZhuyin('ˋ')" /></div>
       </div>
 
       <div class="keyboard-actions">

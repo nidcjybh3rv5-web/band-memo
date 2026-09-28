@@ -1,20 +1,68 @@
-name: Validate Vela Band 9 Project
+name: Build Vela Band 9 RPK
 
 on:
   push:
+    branches: ["main", "1.0"]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  validate:
+  build-rpk:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
-      - run: npm ci --ignore-scripts
-      - run: npm run validate
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Validate project
+        run: npm run validate
+
+      - name: Check AIoT Toolkit
+        run: |
+          npx aiot --version
+          node --version
+          npm --version
+
+      - name: Build RPK
+        run: npm run build
+
+      - name: Find RPK output
+        shell: bash
+        run: |
+          set -e
+          mkdir -p artifacts
+          mapfile -t RPK_FILES < <(find . -type f -name "*.rpk" -not -path "./node_modules/*")
+          if [ "${#RPK_FILES[@]}" -eq 0 ]; then
+            echo "::error::Build completed but no .rpk file was found."
+            echo "Build directory listing:"
+            find . -maxdepth 4 -type f | sort | head -300
+            exit 1
+          fi
+
+          for file in "${RPK_FILES[@]}"; do
+            echo "Found RPK: $file"
+            cp "$file" artifacts/
+          done
+
+          echo "RPK files:"
+          ls -lah artifacts/
+
+      - name: Upload RPK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: band-memo-rpk-${{ github.sha }}
+          path: artifacts/*.rpk
+          if-no-files-found: error
+          retention-days: 14

@@ -50,7 +50,7 @@
               class="favorite"
               type="button"
               value="{{$item.favorite ? '★' : '☆'}}"
-              @click="toggleFavorite"
+              @click="toggleFavorite($item)"
             />
           </div>
           <text class="time">{{$item.time}}</text>
@@ -370,8 +370,7 @@ export default {
     this.refreshList()
   },
 
-  toggleFavorite(event) {
-    const item = event && event.item
+  toggleFavorite(item) {
     if (!item || typeof item.id !== 'string' || this.isSaving) {
       return
     }

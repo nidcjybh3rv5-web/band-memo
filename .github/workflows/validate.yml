@@ -58,11 +58,11 @@ jobs:
           set -e
           mkdir -p artifacts
           mapfile -t RPK_FILES < <(find . -type f -name "*.rpk" -not -path "./node_modules/*")
-          if [ "\${#RPK_FILES[@]}" -eq 0 ]; then
+          if [ "${#RPK_FILES[@]}" -eq 0 ]; then
             echo "::error::Build completed but no .rpk file was found."
             exit 1
           fi
-          for file in "\${RPK_FILES[@]}"; do
+          for file in "${RPK_FILES[@]}"; do
             echo "Found RPK: $file"
             cp "$file" artifacts/
           done
@@ -71,7 +71,7 @@ jobs:
       - name: Upload RPK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: band-memo-rpk-\${{ github.sha }}
+          name: band-memo-rpk-${{ github.sha }}
           path: artifacts/*.rpk
           if-no-files-found: error
           retention-days: 14
@@ -80,10 +80,10 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v\${{ steps.version.outputs.version }}
-          name: Band Memo v\${{ steps.version.outputs.version }}
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Band Memo v${{ steps.version.outputs.version }}
           body: |
-            # Band Memo v\${{ steps.version.outputs.version }}
+            # Band Memo v${{ steps.version.outputs.version }}
 
             小米手環 9 / 9 NFC Vela 速記 App。
 

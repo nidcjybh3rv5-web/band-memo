@@ -9,17 +9,28 @@
       </div>
 
       <input
+        class="search"
+        type="text"
+        placeholder="搜尋筆記"
+        value="{{searchQuery}}"
+        @change="searchNotes"
+      />
+
+      <div class="filters">
+        <input class="filter" type="button" value="全部" @click="showAll" />
+        <input class="filter" type="button" value="最愛" @click="showFavorites" />
+        <input class="filter" type="button" value="最近" @click="showRecent" />
+      </div>
+
+      <input
         class="new-note"
         type="button"
         value="＋ 新增速記"
         @click="openKeyboard"
       />
 
-      <text
-        class="hint"
-        if="{{notes.length === 0}}"
-      >
-        點選新增，輸入你的備忘
+      <text class="hint" if="{{displayNotes.length === 0}}">
+        {{emptyMessage}}
       </text>
 
       <list
@@ -28,12 +39,20 @@
       >
         <list-item
           class="item"
-          for="{{notes}}"
+          for="{{displayNotes}}"
           type="list"
           tid="id"
           @click="editNote($item)"
         >
-          <text class="note">{{$item.text}}</text>
+          <div class="note-line">
+            <text class="note">{{$item.favorite ? '★ ' : ''}}{{$item.text}}</text>
+            <input
+              class="favorite"
+              type="button"
+              value="{{$item.favorite ? '★' : '☆'}}"
+              @click="toggleFavorite"
+            />
+          </div>
           <text class="time">{{$item.time}}</text>
         </list-item>
       </list>
@@ -227,7 +246,9 @@ function safeNotes(raw) {
       result.push({
         id: item.id,
         text: item.text,
-        time: item.time
+        time: item.time,
+        favorite: !!item.favorite,
+        lastUsed: typeof item.lastUsed === 'number' ? item.lastUsed : 0
       })
 
       return result
@@ -253,6 +274,10 @@ export default {
 
   private: {
     notes: [],
+    displayNotes: [],
+    searchQuery: '',
+    filterMode: 'all',
+    emptyMessage: '點選新增，輸入你的備忘',
     mode: 'memo',
     draft: '',
     editingId: '',
@@ -276,15 +301,139 @@ export default {
             ? data
             : data && data.data
         )
+        self.refreshList()
 
       },
 
       fail() {
         self.notes = []
+        self.refreshList()
       }
     })
   },
 
+
+  refreshList() {
+    let items = this.notes.slice()
+
+    if (this.filterMode === 'favorites') {
+      items = items.filter(note => note.favorite)
+    } else if (this.filterMode === 'recent') {
+      items.sort(function(a, b) {
+        return (b.lastUsed || 0) - (a.lastUsed || 0)
+      })
+    } else {
+      items.sort(function(a, b) {
+        if (!!b.favorite !== !!a.favorite) {
+          return b.favorite ? 1 : -1
+        }
+        return (b.lastUsed || 0) - (a.lastUsed || 0)
+      })
+    }
+
+    const query = this.searchQuery.trim().toLowerCase()
+    if (query) {
+      items = items.filter(note =>
+        note.text.toLowerCase().indexOf(query) !== -1
+      )
+    }
+
+    this.displayNotes = items
+    this.emptyMessage = query
+      ? '找不到符合的筆記'
+      : this.filterMode === 'favorites'
+        ? '目前沒有最愛筆記'
+        : this.filterMode === 'recent'
+          ? '目前沒有最近使用的筆記'
+          : '點選新增，輸入你的備忘'
+  },
+
+  searchNotes(event) {
+    this.searchQuery = event && typeof event.value === 'string'
+      ? event.value
+      : ''
+    this.refreshList()
+  },
+
+  showAll() {
+    this.filterMode = 'all'
+    this.refreshList()
+  },
+
+  showFavorites() {
+    this.filterMode = 'favorites'
+    this.refreshList()
+  },
+
+  showRecent() {
+    this.filterMode = 'recent'
+    this.refreshList()
+  },
+
+  toggleFavorite(event) {
+    const item = event && event.item
+    if (!item || typeof item.id !== 'string' || this.isSaving) {
+      return
+    }
+
+    const nextNotes = this.notes.map(note => {
+      if (note.id !== item.id) {
+        return note
+      }
+      return {
+        id: note.id,
+        text: note.text,
+        time: note.time,
+        favorite: !note.favorite,
+        lastUsed: note.lastUsed || 0
+      }
+    })
+
+    this.saveMetadata(nextNotes, '已更新最愛')
+  },
+
+  saveMetadata(nextNotes, successMessage) {
+    const self = this
+    storage.set({
+      key: KEY,
+      value: JSON.stringify(nextNotes),
+      success() {
+        self.notes = nextNotes
+        self.refreshList()
+        self.status = successMessage
+      },
+      fail() {
+        self.status = '儲存失敗，請再試一次'
+      }
+    })
+  },
+
+  touchNote(id) {
+    if (!id) {
+      return
+    }
+
+    const now = Date.now()
+    const nextNotes = this.notes.map(note => {
+      if (note.id !== id) {
+        return note
+      }
+      return {
+        id: note.id,
+        text: note.text,
+        time: note.time,
+        favorite: !!note.favorite,
+        lastUsed: now
+      }
+    })
+
+    this.notes = nextNotes
+    this.refreshList()
+    storage.set({
+      key: KEY,
+      value: JSON.stringify(nextNotes)
+    })
+  },
 
   openKeyboard() {
     this.mode = 'keyboard'
@@ -335,6 +484,7 @@ export default {
     this.mode = 'keyboard'
     this.draft = note.text
     this.editingId = note.id
+    this.touchNote(note.id)
     this.deleteArmed = false
     this.status = ''
   },
@@ -387,7 +537,9 @@ export default {
         return {
           id: note.id,
           text: text,
-          time: formatTime(new Date())
+          time: formatTime(new Date()),
+          favorite: !!note.favorite,
+          lastUsed: Date.now()
         }
       })
     } else {
@@ -395,7 +547,9 @@ export default {
       const note = {
         id: String(now.getTime()) + '-' + String(this.notes.length),
         text: text,
-        time: formatTime(now)
+        time: formatTime(now),
+        favorite: false,
+        lastUsed: now.getTime()
       }
 
       nextNotes = [note].concat(this.notes).slice(0, MAX_NOTES)
@@ -431,6 +585,7 @@ export default {
 
       success() {
         self.notes = nextNotes
+        self.refreshList()
         self.isSaving = false
         self.mode = 'memo'
         self.draft = ''
@@ -478,7 +633,34 @@ export default {
 
 .header {
   justify-content: space-between;
-  margin-bottom: 18px;
+  margin-bottom: 10px;
+}
+
+.search {
+  width: 160px;
+  height: 34px;
+  padding-left: 10px;
+  border-radius: 17px;
+  background-color: #1d2330;
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.filters {
+  width: 160px;
+  margin-top: 7px;
+  margin-bottom: 8px;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.filter {
+  width: 50px;
+  height: 28px;
+  border-radius: 14px;
+  background-color: #242525;
+  color: #ffffff;
+  font-size: 12px;
 }
 
 
@@ -527,11 +709,27 @@ export default {
 
 
 .item {
-  padding: 12px;
+  padding: 10px;
   margin-bottom: 8px;
   border-radius: 12px;
   background-color: #1d2330;
   flex-direction: column;
+}
+
+.note-line {
+  width: 140px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.favorite {
+  width: 28px;
+  height: 26px;
+  border-radius: 13px;
+  background-color: #343434;
+  color: #ffffff;
+  font-size: 15px;
 }
 
 

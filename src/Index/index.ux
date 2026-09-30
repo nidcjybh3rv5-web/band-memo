@@ -619,6 +619,30 @@ export default {
   },
 
 
+  typeZhuyin(value) {
+    if (typeof value !== 'string' || !value) {
+      return
+    }
+
+    if (this.imeMode !== 'zhuyin') {
+      return
+    }
+
+    if (this.imeBuffer.length >= 12) {
+      return
+    }
+
+    const tones = '˙ˊˇˋ'
+    if (tones.indexOf(value) !== -1) {
+      this.imeBuffer = this.imeBuffer.replace(/[˙ˊˇˋ]/g, '') + value
+    } else {
+      this.imeBuffer += value
+    }
+
+    this.refreshCandidates()
+  },
+
+
   space() {
     if (this.imeMode !== 'abc' && this.imeBuffer) {
       if (this.candidates.length > 0) {

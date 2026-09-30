@@ -302,6 +302,14 @@ const SIMPLE_MAP = {
   '嗎':'吗','馬':'马','麼':'么','謝':'谢','寫':'写','憶':'忆','當':'当','註':'注','設':'设'
 };
 
+const TRAD_MAP = {}
+Object.keys(SIMPLE_MAP).forEach(function(ch) {
+  const simple = SIMPLE_MAP[ch]
+  if (simple && !TRAD_MAP[simple]) {
+    TRAD_MAP[simple] = ch
+  }
+});
+
 export default {
 
   private: {
@@ -471,13 +479,19 @@ export default {
   },
 
   toSimplified(text) {
-    return text.split('').map(function(ch) {
+    return String(text || '').split('').map(function(ch) {
       return SIMPLE_MAP[ch] || ch
     }).join('')
   },
 
+  toTraditional(text) {
+    return String(text || '').split('').map(function(ch) {
+      return TRAD_MAP[ch] || ch
+    }).join('')
+  },
+
   getCandidates(buffer) {
-    const key = buffer.toLowerCase()
+    const key = String(buffer || '').toLowerCase()
     let list = []
 
     if (PHRASES[key]) {
@@ -490,9 +504,18 @@ export default {
 
     if (this.scriptMode === 'simp') {
       list = list.map(item => this.toSimplified(item))
+    } else {
+      list = list.map(item => this.toTraditional(item))
     }
 
-    return list.slice(0, 8)
+    const unique = []
+    list.forEach(function(item) {
+      if (unique.indexOf(item) === -1) {
+        unique.push(item)
+      }
+    })
+
+    return unique.slice(0, 8)
   },
 
   refreshCandidates() {
@@ -535,7 +558,14 @@ export default {
   },
 
   toggleScript() {
-    this.scriptMode = this.scriptMode === 'trad' ? 'simp' : 'trad'
+    if (this.scriptMode === 'trad') {
+      this.scriptMode = 'simp'
+      this.draft = this.toSimplified(this.draft)
+    } else {
+      this.scriptMode = 'trad'
+      this.draft = this.toTraditional(this.draft)
+    }
+
     this.refreshCandidates()
   },
 
@@ -544,11 +574,15 @@ export default {
       return
     }
 
-    if (this.draft.length + candidate.length > MAX_TEXT_LENGTH) {
+    const value = this.scriptMode === 'simp'
+      ? this.toSimplified(candidate)
+      : this.toTraditional(candidate)
+
+    if (this.draft.length + value.length > MAX_TEXT_LENGTH) {
       return
     }
 
-    this.draft += candidate
+    this.draft += value
     this.imeBuffer = ''
     this.candidates = []
   },

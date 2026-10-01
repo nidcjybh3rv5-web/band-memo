@@ -62,16 +62,14 @@ jobs:
             echo "::error::Build completed but no .rpk file was found."
             exit 1
           fi
-          for file in "${RPK_FILES[@]}"; do
-            echo "Found RPK: $file"
-            cp "$file" artifacts/
-          done
+          echo "Found RPK: ${RPK_FILES[0]}"
+          cp "${RPK_FILES[0]}" "artifacts/QuickMemo-Band9-v${VERSION}.rpk"
           ls -lah artifacts/
 
       - name: Upload RPK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: band-memo-rpk-${{ github.sha }}
+          name: quickmemo-band9-rpk-${{ github.sha }}
           path: artifacts/*.rpk
           if-no-files-found: error
           retention-days: 14
@@ -81,9 +79,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
-          name: Band Memo v${{ steps.version.outputs.version }}
+          name: QuickMemo v${{ steps.version.outputs.version }}
           body: |
-            # Band Memo v${{ steps.version.outputs.version }}
+            # QuickMemo v${{ steps.version.outputs.version }}
 
             小米手環 9 / 9 NFC Vela 速記 App。
 
@@ -93,6 +91,7 @@ jobs:
             - 繁體 / 簡體切換
             - 筆記搜尋、最愛、最近使用
             - 大型觸控鍵盤
+            - 個人化設定與程式碼優化
 
             ## 安裝
             下載下方的 .rpk 檔案，再使用相容的 Vela / AstroBox 測試工具安裝。

@@ -5,7 +5,10 @@
 
       <div class="header">
         <text class="title">速記</text>
-        <text class="count">{{notes.length}} / 12</text>
+        <div class="header-actions">
+          <text class="count">{{notes.length}} / 12</text>
+          <input class="settings-small" type="button" value="⚙" @click="openSettings" />
+        </div>
       </div>
 
       <input
@@ -59,6 +62,52 @@
 
       <text class="status" if="{{status}}">{{status}}</text>
 
+    </div>
+
+
+    <div
+      class="settings-page"
+      if="{{mode === 'settings'}}"
+    >
+      <div class="settings-header">
+        <text class="settings-title">設定</text>
+        <input class="settings-back" type="button" value="返回" @click="closeSettings" />
+      </div>
+
+      <div class="setting-row">
+        <text class="setting-label">預設輸入</text>
+        <input class="setting-action" type="button" value="{{defaultImeLabel}}" @click="cycleDefaultIme" />
+      </div>
+
+      <div class="setting-row">
+        <text class="setting-label">預設字體</text>
+        <input class="setting-action" type="button" value="{{defaultScriptLabel}}" @click="toggleDefaultScript" />
+      </div>
+
+      <div class="setting-row">
+        <text class="setting-label">候選字數</text>
+        <input class="setting-action" type="button" value="{{candidateLimitLabel}}" @click="cycleCandidateLimit" />
+      </div>
+
+      <div class="setting-row">
+        <text class="setting-label">筆記管理</text>
+        <input
+          class="setting-action setting-danger"
+          type="button"
+          value="{{clearAllLabel}}"
+          @click="requestClearAllNotes"
+        />
+      </div>
+
+      <input class="settings-reset" type="button" value="恢復預設設定" @click="resetSettings" />
+
+      <div class="about-card">
+        <text class="about-name">QuickMemo</text>
+        <text class="about-text">速記 · Band 9 / 9 NFC</text>
+        <text class="about-text">v1.3.0 · 設定＋程式碼優化</text>
+      </div>
+
+      <text class="status" if="{{status}}">{{status}}</text>
     </div>
 
 
@@ -170,9 +219,11 @@
 import storage from '@system.storage'
 
 const KEY = 'band-memo.notes.v1'
+const SETTINGS_KEY = 'band-memo.settings.v1'
 const MAX_NOTES = 12
 const MAX_BYTES = 4096
 const MAX_TEXT_LENGTH = 24
+const DEFAULT_CANDIDATE_LIMIT = 6
 
 function safeNotes(raw) {
   if (
@@ -236,6 +287,54 @@ function safeNotes(raw) {
     return []
   }
 }
+
+function safeSettings(raw) {
+  const defaults = {
+    imeMode: 'abc',
+    scriptMode: 'trad',
+    candidateLimit: DEFAULT_CANDIDATE_LIMIT
+  }
+
+  if (typeof raw !== 'string' || !raw) {
+    return defaults
+  }
+
+  try {
+    const item = JSON.parse(raw)
+
+    const imeMode = item && (
+      item.imeMode === 'abc' ||
+      item.imeMode === 'pinyin' ||
+      item.imeMode === 'zhuyin'
+    )
+      ? item.imeMode
+      : defaults.imeMode
+
+    const scriptMode = item && (
+      item.scriptMode === 'trad' ||
+      item.scriptMode === 'simp'
+    )
+      ? item.scriptMode
+      : defaults.scriptMode
+
+    const candidateLimit = item && (
+      item.candidateLimit === 4 ||
+      item.candidateLimit === 6 ||
+      item.candidateLimit === 8
+    )
+      ? item.candidateLimit
+      : defaults.candidateLimit
+
+    return {
+      imeMode: imeMode,
+      scriptMode: scriptMode,
+      candidateLimit: candidateLimit
+    }
+  } catch (error) {
+    return defaults
+  }
+}
+
 
 function formatTime(now) {
   const month = String(now.getMonth() + 1).padStart(2, '0')
@@ -327,7 +426,17 @@ export default {
     editingId: '',
     deleteArmed: false,
     isSaving: false,
-    status: ''
+    status: '',
+    settings: {
+      imeMode: 'abc',
+      scriptMode: 'trad',
+      candidateLimit: DEFAULT_CANDIDATE_LIMIT
+    },
+    defaultImeLabel: 'ABC',
+    defaultScriptLabel: '繁體',
+    candidateLimitLabel: '6 個',
+    clearAllLabel: '清除全部',
+    confirmClearAll: false
   },
 
 
@@ -352,6 +461,25 @@ export default {
       fail() {
         self.notes = []
         self.refreshList()
+      }
+    })
+
+    storage.get({
+      key: SETTINGS_KEY,
+      default: '{}',
+
+      success(data) {
+        self.settings = safeSettings(
+          typeof data === 'string'
+            ? data
+            : data && data.data
+        )
+        self.applySettingLabels()
+      },
+
+      fail() {
+        self.settings = safeSettings('')
+        self.applySettingLabels()
       }
     })
   },
@@ -515,7 +643,7 @@ export default {
       }
     })
 
-    return unique.slice(0, 8)
+    return unique.slice(0, this.settings.candidateLimit)
   },
 
   refreshCandidates() {
@@ -533,6 +661,137 @@ export default {
     const pinyin = ZHUYIN_TO_PINYIN[this.imeBuffer] || ZHUYIN_TO_PINYIN[normalized] || ''
     this.candidates = pinyin ? this.getCandidates(pinyin) : []
   },
+
+  applySettingLabels() {
+    if (this.settings.imeMode === 'pinyin') {
+      this.defaultImeLabel = '拼音'
+    } else if (this.settings.imeMode === 'zhuyin') {
+      this.defaultImeLabel = '注音'
+    } else {
+      this.defaultImeLabel = 'ABC'
+    }
+
+    this.defaultScriptLabel = this.settings.scriptMode === 'simp'
+      ? '簡體'
+      : '繁體'
+
+    this.candidateLimitLabel = String(this.settings.candidateLimit) + ' 個'
+    this.clearAllLabel = this.confirmClearAll ? '再按一次' : '清除全部'
+  },
+
+
+  saveSettings(message) {
+    const self = this
+    storage.set({
+      key: SETTINGS_KEY,
+      value: JSON.stringify(self.settings),
+
+      success() {
+        self.applySettingLabels()
+        self.status = message
+      },
+
+      fail() {
+        self.status = '設定儲存失敗'
+      }
+    })
+  },
+
+
+  openSettings() {
+    this.mode = 'settings'
+    this.confirmClearAll = false
+    this.applySettingLabels()
+    this.status = ''
+  },
+
+
+  closeSettings() {
+    this.confirmClearAll = false
+    this.mode = 'memo'
+    this.status = ''
+    this.refreshList()
+  },
+
+
+  cycleDefaultIme() {
+    if (this.settings.imeMode === 'abc') {
+      this.settings.imeMode = 'pinyin'
+    } else if (this.settings.imeMode === 'pinyin') {
+      this.settings.imeMode = 'zhuyin'
+    } else {
+      this.settings.imeMode = 'abc'
+    }
+
+    this.saveSettings('已更新預設輸入')
+  },
+
+
+  toggleDefaultScript() {
+    this.settings.scriptMode = this.settings.scriptMode === 'trad'
+      ? 'simp'
+      : 'trad'
+
+    this.saveSettings('已更新預設字體')
+  },
+
+
+  cycleCandidateLimit() {
+    if (this.settings.candidateLimit === 4) {
+      this.settings.candidateLimit = 6
+    } else if (this.settings.candidateLimit === 6) {
+      this.settings.candidateLimit = 8
+    } else {
+      this.settings.candidateLimit = 4
+    }
+
+    this.saveSettings('已更新候選字數')
+  },
+
+
+  resetSettings() {
+    this.settings = {
+      imeMode: 'abc',
+      scriptMode: 'trad',
+      candidateLimit: DEFAULT_CANDIDATE_LIMIT
+    }
+    this.confirmClearAll = false
+    this.saveSettings('已恢復預設設定')
+  },
+
+
+  requestClearAllNotes() {
+    if (!this.confirmClearAll) {
+      this.confirmClearAll = true
+      this.applySettingLabels()
+      this.status = '再按一次確認清除全部'
+      return
+    }
+
+    this.clearAllNotes()
+  },
+
+
+  clearAllNotes() {
+    const self = this
+    storage.set({
+      key: KEY,
+      value: '[]',
+
+      success() {
+        self.notes = []
+        self.displayNotes = []
+        self.confirmClearAll = false
+        self.applySettingLabels()
+        self.status = '已清除全部筆記'
+      },
+
+      fail() {
+        self.status = '清除失敗，請再試一次'
+      }
+    })
+  },
+
 
   setABC() {
     this.setInputMode('abc')
@@ -590,8 +849,8 @@ export default {
   openKeyboard() {
     this.mode = 'keyboard'
     this.draft = ''
-    this.imeMode = 'abc'
-    this.scriptMode = 'trad'
+    this.imeMode = this.settings.imeMode
+    this.scriptMode = this.settings.scriptMode
     this.imeBuffer = ''
     this.candidates = []
     this.editingId = ''
@@ -685,7 +944,8 @@ export default {
 
     this.mode = 'keyboard'
     this.draft = note.text
-    this.imeMode = 'abc'
+    this.imeMode = this.settings.imeMode
+    this.scriptMode = this.settings.scriptMode
     this.imeBuffer = ''
     this.candidates = []
     this.editingId = note.id
@@ -768,7 +1028,7 @@ export default {
       nextNotes = [note].concat(this.notes).slice(0, MAX_NOTES)
     }
 
-    this.saveNotes(nextNotes, '已儲存')
+    this.saveNotes(nextNotes, '已儲存', 'memo')
   },
 
 
@@ -778,11 +1038,11 @@ export default {
     }
 
     const nextNotes = this.notes.filter(note => note.id !== this.editingId)
-    this.saveNotes(nextNotes, '已刪除')
+    this.saveNotes(nextNotes, '已刪除', 'memo')
   },
 
 
-  saveNotes(nextNotes, successMessage) {
+  saveNotes(nextNotes, successMessage, returnMode) {
     const self = this
 
     this.isSaving = true
@@ -800,7 +1060,7 @@ export default {
         self.notes = nextNotes
         self.refreshList()
         self.isSaving = false
-        self.mode = 'memo'
+        self.mode = returnMode || 'memo'
         self.draft = ''
         self.imeBuffer = ''
         self.candidates = []
@@ -957,6 +1217,117 @@ export default {
   margin-top: 4px;
 }
 
+
+
+.header-actions {
+  flex-direction: row;
+  align-items: center;
+}
+
+.settings-small {
+  width: 27px;
+  height: 27px;
+  margin-left: 5px;
+  border-radius: 14px;
+  background-color: #242525;
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.settings-page {
+  width: 192px;
+  min-height: 490px;
+  padding: 15px 16px 20px;
+  flex-direction: column;
+  align-items: center;
+}
+
+.settings-header {
+  width: 160px;
+  height: 34px;
+  margin-bottom: 7px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings-title {
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.settings-back {
+  width: 48px;
+  height: 28px;
+  border-radius: 14px;
+  background-color: #242525;
+  color: #ffffff;
+  font-size: 12px;
+}
+
+.setting-row {
+  width: 160px;
+  height: 43px;
+  margin-top: 5px;
+  padding: 0 8px;
+  border-radius: 12px;
+  background-color: #1d2330;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.setting-label {
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.setting-action {
+  width: 72px;
+  height: 30px;
+  border-radius: 15px;
+  background-color: #246bff;
+  color: #ffffff;
+  font-size: 12px;
+}
+
+.setting-danger {
+  background-color: #742c2c;
+}
+
+.settings-reset {
+  width: 160px;
+  height: 33px;
+  margin-top: 8px;
+  border-radius: 17px;
+  background-color: #343434;
+  color: #ffffff;
+  font-size: 13px;
+}
+
+.about-card {
+  width: 144px;
+  margin-top: 9px;
+  padding: 9px 8px;
+  border-radius: 12px;
+  background-color: #101827;
+  align-items: center;
+  flex-direction: column;
+}
+
+.about-name {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.about-text {
+  margin-top: 3px;
+  color: #8e99ac;
+  font-size: 11px;
+  text-align: center;
+}
 
 .keyboard-page {
   width: 192px;

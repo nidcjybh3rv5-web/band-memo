@@ -53,6 +53,9 @@ requireCondition(page.includes('MAX_NOTES = 12'), 'Note count limit is required'
 requireCondition(page.includes('MAX_BYTES = 4096'), 'Stored-data size limit is required');
 requireCondition(page.includes("this.mode = 'keyboard'"), 'Keyboard mode is required');
 requireCondition(page.includes('MAX_TEXT_LENGTH = 24'), 'Keyboard input length limit is required');
+requireCondition(page.includes('SETTINGS_KEY'), 'Persistent settings are required');
+requireCondition(page.includes('class="settings-page"'), 'Settings page is required');
+requireCondition(page.includes('QuickMemo'), 'QuickMemo app label is required');
 
 if (failures.length) {
   failures.forEach(message => console.error(`ERROR: ${message}`));

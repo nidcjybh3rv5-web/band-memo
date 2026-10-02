@@ -38,13 +38,13 @@
 
       <list
         class="list"
-        if="{{notes.length > 0}}"
+        if="{{displayNotes.length > 0}}"
       >
         <list-item
           class="item"
           for="{{displayNotes}}"
           type="list"
-          tid="id"
+          tid="memo-item"
           @click="editNote($item)"
         >
           <div class="note-line">

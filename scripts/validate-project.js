@@ -49,6 +49,11 @@ const forbidden = [
 ];
 forbidden.forEach(pattern => requireCondition(!pattern.test(page), `Forbidden runtime pattern: ${pattern}`));
 requireCondition(page.includes('function safeNotes(raw)'), 'Stored data validation is required');
+requireCondition(page.includes('MAX_ID_LENGTH = 64'), 'Stored-data ID length limit is required');
+requireCondition(page.includes('utf8ByteLength(raw)'), 'Stored-data byte-length validation is required');
+requireCondition(page.includes('this.isSaving = true'), 'Storage save lock is required');
+requireCondition(page.includes('event.stopPropagation()'), 'Favorite event propagation guard is required');
+requireCondition(page.includes('commitNotes(nextNotes)'), 'Note state synchronization helper is required');
 requireCondition(page.includes('MAX_NOTES = 12'), 'Note count limit is required');
 requireCondition(page.includes('MAX_BYTES = 4096'), 'Stored-data size limit is required');
 requireCondition(page.includes("this.mode = 'keyboard'"), 'Keyboard mode is required');

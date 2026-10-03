@@ -1,8 +1,8 @@
 {
-  "name": "band-memo-vela-band9",
-  "version": "1.3.1",
+  "name": "quickmemo-vela-band11",
+  "version": "1.0.0",
   "private": true,
-  "description": "QuickMemo (速記) for Xiaomi Vela JS on Xiaomi Band 9 / 9 NFC",
+  "description": "QuickMemo (速記) for Xiaomi Vela JS on Xiaomi Smart Band 11",
   "scripts": {
     "build": "aiot build --enable-jsc",
     "release": "aiot release --enable-jsc",

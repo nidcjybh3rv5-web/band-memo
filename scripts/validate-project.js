@@ -61,10 +61,15 @@ requireCondition(page.includes('MAX_TEXT_LENGTH = 24'), 'Keyboard input length l
 requireCondition(page.includes('SETTINGS_KEY'), 'Persistent settings are required');
 requireCondition(page.includes('class="settings-page"'), 'Settings page is required');
 requireCondition(page.includes('QuickMemo'), 'QuickMemo app label is required');
+requireCondition(page.includes('togglePinned'), 'Pinned notes feature is required');
+requireCondition(page.includes('duplicateNote'), 'Duplicate note feature is required');
+requireCondition(page.includes('setNumberKeyboard'), 'Numeric keyboard is required');
+requireCondition(page.includes('setSymbolKeyboard'), 'Symbol keyboard is required');
+requireCondition(page.includes('undoDraft'), 'Undo draft feature is required');
 
 if (failures.length) {
   failures.forEach(message => console.error(`ERROR: ${message}`));
   process.exit(1);
 }
 
-console.log('Vela Band 11 project validation passed.');
+console.log('Vela Band 11 QuickMemo v1.3.1 project validation passed.');

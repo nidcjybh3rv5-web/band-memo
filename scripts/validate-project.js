@@ -32,8 +32,8 @@ try {
 
 const page = readText(pagePath);
 requireCondition(fs.existsSync(iconPath), 'Missing application icon');
-requireCondition(manifest.package === 'com.nick.bandmemo', 'Unexpected application package');
-requireCondition(manifest.config && manifest.config.designWidth === 192, 'Band 9 designWidth must be 192');
+requireCondition(manifest.package === 'com.nick.bandmemo11', 'Unexpected application package');
+requireCondition(manifest.config && manifest.config.designWidth === 212, 'Band 11 designWidth must be 212');
 requireCondition(manifest.router && manifest.router.entry === 'Index', 'Index must be the entry route');
 requireCondition(manifest.router && manifest.router.pages && manifest.router.pages.Index && manifest.router.pages.Index.component === 'index', 'Index route is incomplete');
 
@@ -67,4 +67,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('Vela Band 9 project validation passed.');
+console.log('Vela Band 11 project validation passed.');

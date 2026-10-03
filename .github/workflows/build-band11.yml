@@ -1,0 +1,72 @@
+name: Build QuickMemo Band 11 RPK
+
+on:
+  push:
+    branches: ["band11/quickmemo-v1"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-rpk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Validate project
+        run: npm run validate
+
+      - name: Check AIoT Toolkit
+        run: |
+          npx aiot --version
+          node --version
+          npm --version
+
+      - name: Read app version
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Building QuickMemo Band 11 v$VERSION"
+
+      - name: Build RPK
+        run: |
+          set -e
+          npm run build
+          test -d build
+          find build -maxdepth 4 -type f -print | sort
+
+      - name: Find RPK output
+        shell: bash
+        run: |
+          set -e
+          mkdir -p artifacts
+          mapfile -t RPK_FILES < <(find . -type f -name "*.rpk" -not -path "./node_modules/*")
+          if [ "${#RPK_FILES[@]}" -eq 0 ]; then
+            echo "::error::Build completed but no .rpk file was found."
+            exit 1
+          fi
+          VERSION="${{ steps.version.outputs.version }}"
+          echo "Found RPK: ${RPK_FILES[0]}"
+          cp "${RPK_FILES[0]}" "artifacts/QuickMemo-Band11-v${VERSION}.rpk"
+          ls -lah artifacts/
+
+      - name: Upload RPK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: quickmemo-band11-rpk-${{ github.sha }}
+          path: artifacts/*.rpk
+          if-no-files-found: error
+          retention-days: 14

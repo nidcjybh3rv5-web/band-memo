@@ -22,6 +22,7 @@
       <div class="filters">
         <input class="filter" type="button" value="全部" @click="showAll" />
         <input class="filter" type="button" value="最愛" @click="showFavorites" />
+        <input class="filter" type="button" value="釘選" @click="showPinned" />
         <input class="filter" type="button" value="最近" @click="showRecent" />
       </div>
 
@@ -48,13 +49,10 @@
           @click="editNote($item)"
         >
           <div class="note-line">
-            <text class="note">{{$item.favorite ? '★ ' : ''}}{{$item.text}}</text>
-            <input
-              class="favorite"
-              type="button"
-              value="{{$item.favorite ? '★' : '☆'}}"
-              @click="toggleFavorite($item, $event)"
-            />
+            <text class="note">{{$item.pinned ? '📌 ' : ''}}{{$item.favorite ? '★ ' : ''}}{{$item.text}}</text>
+            <input class="favorite" type="button" value="{{$item.favorite ? '★' : '☆'}}" @click="toggleFavorite($item, $event)" />
+            <input class="pin" type="button" value="{{$item.pinned ? '📌' : '📍'}}" @click="togglePinned($item, $event)" />
+            <input class="duplicate" type="button" value="複製" @click="duplicateNote($item, $event)" />
           </div>
           <text class="time">{{$item.time}}</text>
         </list-item>
@@ -103,8 +101,8 @@
 
       <div class="about-card">
         <text class="about-name">QuickMemo</text>
-        <text class="about-text">速記 · Band 9 / 9 NFC</text>
-        <text class="about-text">v1.3.0 · 設定＋程式碼優化</text>
+        <text class="about-text">速記 · Band 11</text>
+        <text class="about-text">v1.3.1 · Band 11 強化版</text>
       </div>
 
       <text class="status" if="{{status}}">{{status}}</text>
@@ -124,6 +122,8 @@
         <input class="mode-btn" type="button" value="ABC" @click="setABC" />
         <input class="mode-btn" type="button" value="拼音" @click="setPinyin" />
         <input class="mode-btn" type="button" value="注音" @click="setZhuyin" />
+        <input class="mode-btn" type="button" value="123" @click="setNumberKeyboard" />
+        <input class="mode-btn" type="button" value="符號" @click="setSymbolKeyboard" />
         <input class="script-btn" type="button" value="{{scriptMode === 'trad' ? '繁' : '簡'}}" @click="toggleScript" />
       </div>
 
@@ -152,7 +152,7 @@
       <input class="delete" type="button" if="{{editingId && !deleteArmed}}" value="刪除這則備忘" @click="requestDelete" />
       <input class="delete confirm-delete" type="button" if="{{editingId && deleteArmed}}" value="再按一次確認刪除" @click="deleteNote" />
 
-      <div class="keys qwerty-keys" if="{{imeMode === 'abc' || imeMode === 'pinyin'}}">
+      <div class="keys qwerty-keys" if="{{keyboardMode === 'letters' && (imeMode === 'abc' || imeMode === 'pinyin')}}">
         <div class="key-row">
           <input class="key" type="button" value="Q" @click="typeKey('Q')" />
           <input class="key" type="button" value="W" @click="typeKey('W')" />
@@ -193,7 +193,7 @@
         </div>
       </div>
 
-      <div class="keys zhuyin-keys" if="{{imeMode === 'zhuyin'}}">
+      <div class="keys zhuyin-keys" if="{{keyboardMode === 'letters' && imeMode === 'zhuyin'}}">
         <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄅ" @click="typeZhuyin('ㄅ')" /><input class="zkey" type="button" value="ㄆ" @click="typeZhuyin('ㄆ')" /><input class="zkey" type="button" value="ㄇ" @click="typeZhuyin('ㄇ')" /><input class="zkey" type="button" value="ㄈ" @click="typeZhuyin('ㄈ')" /><input class="zkey" type="button" value="ㄉ" @click="typeZhuyin('ㄉ')" /></div>
         <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄊ" @click="typeZhuyin('ㄊ')" /><input class="zkey" type="button" value="ㄋ" @click="typeZhuyin('ㄋ')" /><input class="zkey" type="button" value="ㄌ" @click="typeZhuyin('ㄌ')" /><input class="zkey" type="button" value="ㄍ" @click="typeZhuyin('ㄍ')" /><input class="zkey" type="button" value="ㄎ" @click="typeZhuyin('ㄎ')" /></div>
         <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄏ" @click="typeZhuyin('ㄏ')" /><input class="zkey" type="button" value="ㄐ" @click="typeZhuyin('ㄐ')" /><input class="zkey" type="button" value="ㄑ" @click="typeZhuyin('ㄑ')" /><input class="zkey" type="button" value="ㄒ" @click="typeZhuyin('ㄒ')" /><input class="zkey" type="button" value="ㄓ" @click="typeZhuyin('ㄓ')" /></div>
@@ -203,6 +203,15 @@
         <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄣ" @click="typeZhuyin('ㄣ')" /><input class="zkey" type="button" value="ㄤ" @click="typeZhuyin('ㄤ')" /><input class="zkey" type="button" value="ㄥ" @click="typeZhuyin('ㄥ')" /><input class="zkey" type="button" value="ㄦ" @click="typeZhuyin('ㄦ')" /><input class="zkey" type="button" value="ㄧ" @click="typeZhuyin('ㄧ')" /></div>
         <div class="key-row zhuyin-row"><input class="zkey" type="button" value="ㄨ" @click="typeZhuyin('ㄨ')" /><input class="zkey" type="button" value="ㄩ" @click="typeZhuyin('ㄩ')" /></div>
         <div class="tone-row"><input class="tone" type="button" value="˙" @click="typeZhuyin('˙')" /><input class="tone" type="button" value="ˊ" @click="typeZhuyin('ˊ')" /><input class="tone" type="button" value="ˇ" @click="typeZhuyin('ˇ')" /><input class="tone" type="button" value="ˋ" @click="typeZhuyin('ˋ')" /></div>
+      </div>
+
+      <div class="keys number-keys" if="{{keyboardMode === 'number'}}">
+        <div class="key-row"><input class="key" type="button" value="1" @click="typeKey('1')" /><input class="key" type="button" value="2" @click="typeKey('2')" /><input class="key" type="button" value="3" @click="typeKey('3')" /><input class="key" type="button" value="4" @click="typeKey('4')" /><input class="key" type="button" value="5" @click="typeKey('5')" /></div>
+        <div class="key-row"><input class="key" type="button" value="6" @click="typeKey('6')" /><input class="key" type="button" value="7" @click="typeKey('7')" /><input class="key" type="button" value="8" @click="typeKey('8')" /><input class="key" type="button" value="9" @click="typeKey('9')" /><input class="key" type="button" value="0" @click="typeKey('0')" /></div>
+      </div>
+      <div class="keys symbol-keys" if="{{keyboardMode === 'symbol'}}">
+        <div class="key-row"><input class="key" type="button" value="!" @click="typeKey('!')" /><input class="key" type="button" value="?" @click="typeKey('?')" /><input class="key" type="button" value="." @click="typeKey('.')" /><input class="key" type="button" value="," @click="typeKey(',')" /><input class="key" type="button" value=":" @click="typeKey(':')" /></div>
+        <div class="key-row"><input class="key" type="button" value=";" @click="typeKey(';')" /><input class="key" type="button" value="-" @click="typeKey('-')" /><input class="key" type="button" value="/" @click="typeKey('/')" /><input class="key" type="button" value="@" @click="typeKey('@')" /><input class="key" type="button" value="#" @click="typeKey('#')" /></div>
       </div>
 
       <div class="keyboard-actions">
@@ -307,6 +316,7 @@ function safeNotes(raw) {
         text: item.text,
         time: item.time,
         favorite: !!item.favorite,
+        pinned: !!item.pinned,
         lastUsed: typeof item.lastUsed === 'number' ? item.lastUsed : 0
       })
 
@@ -457,6 +467,8 @@ export default {
     editingId: '',
     deleteArmed: false,
     isSaving: false,
+    undoDraft: '',
+    keyboardMode: 'letters',
     status: '',
     settings: {
       imeMode: 'abc',
@@ -532,12 +544,17 @@ export default {
 
     if (this.filterMode === 'favorites') {
       items = items.filter(note => note.favorite)
+    } else if (this.filterMode === 'pinned') {
+      items = items.filter(note => note.pinned)
     } else if (this.filterMode === 'recent') {
       items.sort(function(a, b) {
         return (b.lastUsed || 0) - (a.lastUsed || 0)
       })
     } else {
       items.sort(function(a, b) {
+        if (!!b.pinned !== !!a.pinned) {
+          return b.pinned ? 1 : -1
+        }
         if (!!b.favorite !== !!a.favorite) {
           return b.favorite ? 1 : -1
         }
@@ -557,9 +574,11 @@ export default {
       ? '找不到符合的筆記'
       : this.filterMode === 'favorites'
         ? '目前沒有最愛筆記'
-        : this.filterMode === 'recent'
-          ? '目前沒有最近使用的筆記'
-          : '點選新增，輸入你的備忘'
+        : this.filterMode === 'pinned'
+          ? '目前沒有釘選筆記'
+          : this.filterMode === 'recent'
+            ? '目前沒有最近使用的筆記'
+            : '點選新增，輸入你的備忘'
   },
 
   searchNotes(event) {
@@ -576,6 +595,11 @@ export default {
 
   showFavorites() {
     this.filterMode = 'favorites'
+    this.refreshList()
+  },
+
+  showPinned() {
+    this.filterMode = 'pinned'
     this.refreshList()
   },
 
@@ -857,12 +881,25 @@ export default {
     this.setInputMode('zhuyin')
   },
 
+  setNumberKeyboard() {
+    this.keyboardMode = 'number'
+    this.imeBuffer = ''
+    this.candidates = []
+  },
+
+  setSymbolKeyboard() {
+    this.keyboardMode = 'symbol'
+    this.imeBuffer = ''
+    this.candidates = []
+  },
+
   setInputMode(mode) {
     if (mode !== 'abc' && mode !== 'pinyin' && mode !== 'zhuyin') {
       return
     }
 
     this.imeMode = mode
+    this.keyboardMode = 'letters'
     this.imeBuffer = ''
     this.candidates = []
     this.status = ''
@@ -901,6 +938,8 @@ export default {
   openKeyboard() {
     this.mode = 'keyboard'
     this.draft = ''
+    this.undoDraft = ''
+    this.keyboardMode = 'letters'
     this.imeMode = this.settings.imeMode
     this.scriptMode = this.settings.scriptMode
     this.imeBuffer = ''
@@ -916,7 +955,16 @@ export default {
       return
     }
 
+    if (this.keyboardMode !== 'letters') {
+      this.undoDraft = this.draft
+      if (this.draft.length < MAX_TEXT_LENGTH) {
+        this.draft += value
+      }
+      return
+    }
+
     if (this.imeMode === 'abc') {
+      this.undoDraft = this.draft
       if (this.draft.length < MAX_TEXT_LENGTH) {
         this.draft += value
       }
@@ -983,6 +1031,7 @@ export default {
 
 
   clearDraft() {
+    this.undoDraft = this.draft
     this.draft = ''
     this.imeBuffer = ''
     this.candidates = []
@@ -996,6 +1045,8 @@ export default {
 
     this.mode = 'keyboard'
     this.draft = note.text
+    this.undoDraft = ''
+    this.keyboardMode = 'letters'
     this.imeMode = this.settings.imeMode
     this.scriptMode = this.settings.scriptMode
     this.imeBuffer = ''
@@ -1032,6 +1083,13 @@ export default {
   },
 
 
+  undoDraft() {
+    this.draft = this.undoDraft || ''
+    this.undoDraft = ''
+    this.imeBuffer = ''
+    this.candidates = []
+  },
+
   saveDraft() {
 
     if (this.isSaving) {
@@ -1064,6 +1122,7 @@ export default {
           text: text,
           time: formatTime(new Date()),
           favorite: !!note.favorite,
+          pinned: !!note.pinned,
           lastUsed: Date.now()
         }
       })
@@ -1074,6 +1133,7 @@ export default {
         text: text,
         time: formatTime(now),
         favorite: false,
+        pinned: false,
         lastUsed: now.getTime()
       }
 
@@ -1260,7 +1320,22 @@ export default {
 
 
 .note {
-  font-size: 18px;
+  font-size: 16px;
+  flex: 1;
+}
+
+.pin,
+.duplicate {
+  width: 28px;
+  height: 26px;
+  border-radius: 13px;
+  background-color: #343434;
+  color: #ffffff;
+  font-size: 12px;
+}
+
+.duplicate {
+  width: 40px;
 }
 
 
@@ -1497,6 +1572,13 @@ export default {
 
 .confirm-delete {
   background-color: #e03a3a;
+}
+
+.number-keys,
+.symbol-keys {
+  height: 152px;
+  margin-top: 2px;
+  padding-top: 4px;
 }
 
 .keys {

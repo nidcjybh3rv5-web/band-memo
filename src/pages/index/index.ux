@@ -1136,7 +1136,7 @@ export default {
 <style>
 
 .page {
-  width: 192px;
+  width: 212px;
   min-height: 490px;
   background-color: #000000;
   flex-direction: column;
@@ -1144,7 +1144,7 @@ export default {
 
 
 .memo {
-  padding: 24px 16px 34px;
+  padding: 24px 18px 34px;
   flex-direction: column;
 }
 
@@ -1163,7 +1163,7 @@ export default {
 }
 
 .search {
-  width: 160px;
+  width: 176px;
   height: 34px;
   padding-left: 10px;
   border-radius: 17px;
@@ -1173,7 +1173,7 @@ export default {
 }
 
 .filters {
-  width: 160px;
+  width: 176px;
   margin-top: 7px;
   margin-bottom: 8px;
   flex-direction: row;
@@ -1213,7 +1213,7 @@ export default {
 
 
 .new-note {
-  width: 160px;
+  width: 176px;
   height: 42px;
   border-radius: 21px;
   font-size: 16px;
@@ -1243,7 +1243,7 @@ export default {
 }
 
 .note-line {
-  width: 140px;
+  width: 156px;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
@@ -1286,7 +1286,7 @@ export default {
 }
 
 .settings-page {
-  width: 192px;
+  width: 212px;
   min-height: 490px;
   padding: 15px 16px 20px;
   flex-direction: column;
@@ -1294,7 +1294,7 @@ export default {
 }
 
 .settings-header {
-  width: 160px;
+  width: 176px;
   height: 34px;
   margin-bottom: 7px;
   flex-direction: row;
@@ -1318,7 +1318,7 @@ export default {
 }
 
 .setting-row {
-  width: 160px;
+  width: 176px;
   height: 43px;
   margin-top: 5px;
   padding: 0 8px;
@@ -1348,7 +1348,7 @@ export default {
 }
 
 .settings-reset {
-  width: 160px;
+  width: 176px;
   height: 33px;
   margin-top: 8px;
   border-radius: 17px;
@@ -1381,7 +1381,7 @@ export default {
 }
 
 .keyboard-page {
-  width: 192px;
+  width: 212px;
   min-height: 490px;
   padding-top: 15px;
   align-items: center;
@@ -1389,7 +1389,7 @@ export default {
 }
 
 .input-box {
-  width: 160px;
+  width: 176px;
   height: 44px;
   padding: 6px 8px;
   border-radius: 16px;
@@ -1404,7 +1404,7 @@ export default {
 }
 
 .mode-row {
-  width: 160px;
+  width: 176px;
   height: 30px;
   margin-top: 5px;
   justify-content: space-between;
@@ -1430,7 +1430,7 @@ export default {
 }
 
 .candidate-row {
-  width: 160px;
+  width: 176px;
   height: 29px;
   margin-top: 3px;
   justify-content: space-between;
@@ -1447,7 +1447,7 @@ export default {
 }
 
 .ime-hint {
-  width: 160px;
+  width: 176px;
   height: 15px;
   margin-top: 1px;
   color: #8e99ac;
@@ -1456,7 +1456,7 @@ export default {
 }
 
 .tools {
-  width: 160px;
+  width: 176px;
   justify-content: space-between;
   margin-top: 4px;
 }
@@ -1500,7 +1500,7 @@ export default {
 }
 
 .keys {
-  width: 192px;
+  width: 212px;
   align-items: center;
   flex-direction: column;
   background-color: #080808;
@@ -1550,7 +1550,7 @@ export default {
 }
 
 .tone-row {
-  width: 160px;
+  width: 176px;
   height: 27px;
   justify-content: center;
   flex-direction: row;
@@ -1568,7 +1568,7 @@ export default {
 }
 
 .keyboard-actions {
-  width: 160px;
+  width: 176px;
   height: 36px;
   margin-top: 2px;
   justify-content: center;

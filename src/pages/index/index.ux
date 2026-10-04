@@ -685,6 +685,8 @@ export default {
         text: note.text,
         time: note.time,
         favorite: !!note.favorite,
+        category: note.category || 'other',
+        categoryLabel: this.getCategoryLabel(note.category || 'other'),
         lastUsed: now
       }
     })

@@ -1,8 +1,8 @@
-name: Build Vela Band 9 RPK
+name: Build Vela Band 11 RPK
 
 on:
   push:
-    branches: ["main", "1.0"]
+    branches: ["main", "1.0", "band11/quickmemo-v1"]
   pull_request:
   workflow_dispatch:
 
@@ -40,7 +40,7 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').version")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Building Band Memo v$VERSION"
+          echo "Building QuickMemo11 v$VERSION"
 
       - name: Build RPK
         run: |
@@ -64,28 +64,28 @@ jobs:
           fi
           VERSION="${{ steps.version.outputs.version }}"
           echo "Found RPK: ${RPK_FILES[0]}"
-          echo "Target RPK: artifacts/QuickMemo-Band9-v${VERSION}.rpk"
-          cp "${RPK_FILES[0]}" "artifacts/QuickMemo-Band9-v${VERSION}.rpk"
+          echo "Target RPK: artifacts/QuickMemo11-v${VERSION}.rpk"
+          cp "${RPK_FILES[0]}" "artifacts/QuickMemo11-v${VERSION}.rpk"
           ls -lah artifacts/
 
       - name: Upload RPK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: quickmemo-band9-rpk-${{ github.sha }}
+          name: quickmemo11-rpk-${{ github.sha }}
           path: artifacts/*.rpk
           if-no-files-found: error
           retention-days: 14
 
       - name: Publish GitHub Release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/band11/quickmemo-v1'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.version.outputs.version }}
-          name: QuickMemo v${{ steps.version.outputs.version }}
+          tag_name: quickmemo11-v${{ steps.version.outputs.version }}
+          name: QuickMemo11 v${{ steps.version.outputs.version }}
           body: |
-            # QuickMemo v${{ steps.version.outputs.version }}
+            # QuickMemo11 v${{ steps.version.outputs.version }}
 
-            小米手環 9 / 9 NFC Vela 速記 App。
+            小米手環 11 Vela 速記 App。
 
             ## 內容
             - 台灣＋中國跨區輸入

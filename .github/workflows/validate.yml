@@ -68,7 +68,7 @@ jobs:
           fi
           VERSION="${{ steps.version.outputs.version }}"
           echo "Found RPK: ${RPK_FILES[0]}"
-          echo "Target RPK: artifacts/QuickMemo-Band9-v${VERSION}.rpk"
+          echo "Target RPK: artifacts/QuickMemo-v${VERSION}-Band9.rpk"
           cp "${RPK_FILES[0]}" "artifacts/QuickMemo-Band9-v${VERSION}.rpk"
           ls -lah artifacts/
 

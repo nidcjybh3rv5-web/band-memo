@@ -62,6 +62,9 @@ requireCondition(page.includes('MAX_TEXT_LENGTH = 24'), 'Keyboard input length l
 requireCondition(page.includes('SETTINGS_KEY'), 'Persistent settings are required');
 requireCondition(page.includes('class="settings-page"'), 'Settings page is required');
 requireCondition(page.includes('QuickMemo9'), 'QuickMemo9 app label is required');
+requireCondition(page.includes('showCategory'), 'Note categories are required');
+requireCondition(page.includes('cycleCategory'), 'Category picker is required');
+requireCondition(page.includes('categoryFilter'), 'Category filtering is required');
 
 if (failures.length) {
   failures.forEach(message => console.error(`ERROR: ${message}`));

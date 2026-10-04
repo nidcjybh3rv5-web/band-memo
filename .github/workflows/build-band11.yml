@@ -1,4 +1,4 @@
-name: Build QuickMemo Band 11 RPK
+name: Build QuickMemo11 Band 11 RPK
 
 on:
   push:
@@ -39,7 +39,7 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').version")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Building QuickMemo Band 11 v$VERSION"
+          echo "Building QuickMemo11 Band 11 v$VERSION"
 
       - name: Build RPK
         run: |
@@ -60,7 +60,7 @@ jobs:
           fi
           VERSION="${{ steps.version.outputs.version }}"
           echo "Found RPK: ${RPK_FILES[0]}"
-          cp "${RPK_FILES[0]}" "artifacts/QuickMemo-Band11-v${VERSION}.rpk"
+          cp "${RPK_FILES[0]}" "artifacts/QuickMemo11-v${VERSION}.rpk"
           ls -lah artifacts/
 
       - name: Upload RPK artifact

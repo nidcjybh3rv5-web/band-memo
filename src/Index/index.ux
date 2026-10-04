@@ -1113,6 +1113,8 @@ export default {
         text: text,
         time: formatTime(now),
         favorite: false,
+        category: this.category,
+        categoryLabel: this.getCategoryLabel(this.category),
         lastUsed: now.getTime()
       }
 

@@ -318,6 +318,8 @@ function safeNotes(raw) {
         text: item.text,
         time: item.time,
         favorite: !!item.favorite,
+        category: item.category === 'school' || item.category === 'todo' || item.category === 'work' || item.category === 'other' ? item.category : 'other',
+        categoryLabel: item.category === 'school' ? '學校' : item.category === 'todo' ? '待辦' : item.category === 'work' ? '工作' : '其他',
         lastUsed: typeof item.lastUsed === 'number' ? item.lastUsed : 0
       })
 

@@ -76,7 +76,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: quickmemo-band9-rpk-${{ github.sha }}
-          path: artifacts/*.rpk
+          path: apps/QuickMemo9/artifacts/*.rpk
           if-no-files-found: error
           retention-days: 14
 
@@ -103,6 +103,6 @@ jobs:
             下載下方的 .rpk 檔案，再使用相容的 Vela / AstroBox 測試工具安裝。
 
             > 注意：目前 Build 產生的是 DEBUG RPK，不代表小米官方認證或正式商店簽章。
-          files: artifacts/*.rpk
+          files: apps/QuickMemo9/artifacts/*.rpk
           fail_on_unmatched_files: true
           generate_release_notes: true

@@ -25,6 +25,14 @@
         <input class="filter" type="button" value="最近" @click="showRecent" />
       </div>
 
+      <div class="category-filters">
+        <input class="category-filter" type="button" value="全部" @click="showCategory('all')" />
+        <input class="category-filter" type="button" value="學校" @click="showCategory('school')" />
+        <input class="category-filter" type="button" value="待辦" @click="showCategory('todo')" />
+        <input class="category-filter" type="button" value="工作" @click="showCategory('work')" />
+        <input class="category-filter" type="button" value="其他" @click="showCategory('other')" />
+      </div>
+
       <input
         class="new-note"
         type="button"

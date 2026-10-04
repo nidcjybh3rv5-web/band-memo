@@ -62,7 +62,7 @@ jobs:
             exit 1
           fi
           VERSION="${{ steps.version.outputs.version }}"
-          cp "${RPK_FILES[0]}" "artifacts/QuickMemo11-v${VERSION}.rpk"
+          cp "${RPK_FILES[0]}" "artifacts/QuickMemo-v${VERSION}-Band11.rpk"
 
       - name: Upload RPK artifact
         uses: actions/upload-artifact@v4

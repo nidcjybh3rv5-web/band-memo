@@ -1035,6 +1035,8 @@ export default {
 
     this.mode = 'keyboard'
     this.draft = note.text
+    this.category = note.category || 'other'
+    this.categoryLabel = this.getCategoryLabel(this.category)
     this.imeMode = this.settings.imeMode
     this.scriptMode = this.settings.scriptMode
     this.imeBuffer = ''

@@ -32,8 +32,9 @@ try {
 
 const page = readText(pagePath);
 requireCondition(fs.existsSync(iconPath), 'Missing application icon');
-requireCondition(manifest.package === 'com.nick.bandmemo', 'Unexpected application package');
+requireCondition(manifest.package === 'com.nick.quickmemo9', 'Unexpected application package');
 requireCondition(manifest.config && manifest.config.designWidth === 192, 'Band 9 designWidth must be 192');
+requireCondition(manifest.name === 'QuickMemo9', 'QuickMemo9 app name is required');
 requireCondition(manifest.router && manifest.router.entry === 'Index', 'Index must be the entry route');
 requireCondition(manifest.router && manifest.router.pages && manifest.router.pages.Index && manifest.router.pages.Index.component === 'index', 'Index route is incomplete');
 
@@ -60,7 +61,7 @@ requireCondition(page.includes("this.mode = 'keyboard'"), 'Keyboard mode is requ
 requireCondition(page.includes('MAX_TEXT_LENGTH = 24'), 'Keyboard input length limit is required');
 requireCondition(page.includes('SETTINGS_KEY'), 'Persistent settings are required');
 requireCondition(page.includes('class="settings-page"'), 'Settings page is required');
-requireCondition(page.includes('QuickMemo'), 'QuickMemo app label is required');
+requireCondition(page.includes('QuickMemo9'), 'QuickMemo9 app label is required');
 
 if (failures.length) {
   failures.forEach(message => console.error(`ERROR: ${message}`));

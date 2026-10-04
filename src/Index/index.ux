@@ -1259,6 +1259,38 @@ export default {
 }
 
 
+.category-filters {
+  width: 160px;
+  margin-bottom: 8px;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.category-filter {
+  width: 29px;
+  height: 26px;
+  border-radius: 13px;
+  background-color: #242525;
+  color: #ffffff;
+  font-size: 10px;
+}
+
+.category-action {
+  width: 160px;
+  height: 28px;
+  margin-top: 4px;
+  border-radius: 14px;
+  background-color: #343434;
+  color: #ffffff;
+  font-size: 12px;
+}
+
+.category-label {
+  color: #8e99ac;
+  font-size: 11px;
+  margin-top: 2px;
+}
+
 .new-note {
   width: 160px;
   height: 42px;

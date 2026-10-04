@@ -4,7 +4,7 @@
     <div class="memo" if="{{mode === 'memo'}}">
 
       <div class="header">
-        <text class="title">速記</text>
+        <text class="title">QuickMemo9</text>
         <div class="header-actions">
           <text class="count">{{notes.length}} / 12</text>
           <input class="settings-small" type="button" value="⚙" @click="openSettings" />
@@ -102,7 +102,7 @@
       <input class="settings-reset" type="button" value="恢復預設設定" @click="resetSettings" />
 
       <div class="about-card">
-        <text class="about-name">QuickMemo</text>
+        <text class="about-name">QuickMemo9</text>
         <text class="about-text">速記 · Band 9 / 9 NFC</text>
         <text class="about-text">v1.3.0 · 設定＋程式碼優化</text>
       </div>

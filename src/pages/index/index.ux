@@ -150,6 +150,8 @@
         {{imeBuffer}}
       </text>
 
+      <input class="category-action" type="button" value="分類：{{categoryLabel}}" @click="cycleCategory" />
+
       <div class="tools">
         <input class="tool cancel" type="button" value="取消" @click="cancelEdit" />
         <input class="tool clear" type="button" value="清除" @click="clearDraft" />

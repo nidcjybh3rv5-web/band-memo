@@ -85,7 +85,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
-          name: QuickMemo v${{ steps.version.outputs.version }}
+          name: QuickMemo Band 9 v${{ steps.version.outputs.version }}
           body: |
             # QuickMemo v${{ steps.version.outputs.version }}
 

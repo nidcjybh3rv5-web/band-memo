@@ -604,6 +604,23 @@ export default {
     this.refreshList()
   },
 
+  showCategory(category) {
+    if (['all', 'school', 'todo', 'work', 'other'].indexOf(category) === -1) return
+    this.categoryFilter = category
+    this.refreshList()
+  },
+
+  getCategoryLabel(category) {
+    return category === 'school' ? '學校' : category === 'todo' ? '待辦' : category === 'work' ? '工作' : '其他'
+  },
+
+  cycleCategory() {
+    const order = ['other', 'school', 'todo', 'work']
+    const index = order.indexOf(this.category)
+    this.category = order[(index + 1) % order.length]
+    this.categoryLabel = this.getCategoryLabel(this.category)
+  },
+
   toggleFavorite(item, event) {
     if (!item || typeof item.id !== 'string' || this.isSaving) {
       return

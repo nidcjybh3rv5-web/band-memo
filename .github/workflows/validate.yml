@@ -12,6 +12,9 @@ permissions:
 jobs:
   build-rpk:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/QuickMemo9
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,6 +24,7 @@ jobs:
         with:
           node-version: 24
           cache: npm
+          cache-dependency-path: apps/QuickMemo9/package-lock.json
 
       - name: Install dependencies
         run: npm install

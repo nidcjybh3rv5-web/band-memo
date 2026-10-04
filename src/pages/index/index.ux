@@ -940,6 +940,8 @@ export default {
   openKeyboard() {
     this.mode = 'keyboard'
     this.draft = ''
+    this.category = 'other'
+    this.categoryLabel = '其他'
     this.imeMode = this.settings.imeMode
     this.scriptMode = this.settings.scriptMode
     this.imeBuffer = ''

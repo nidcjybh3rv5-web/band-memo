@@ -66,6 +66,9 @@ requireCondition(page.includes('duplicateNote'), 'Duplicate note feature is requ
 requireCondition(page.includes('setNumberKeyboard'), 'Numeric keyboard is required');
 requireCondition(page.includes('setSymbolKeyboard'), 'Symbol keyboard is required');
 requireCondition(page.includes('undoDraft'), 'Undo draft feature is required');
+requireCondition(page.includes('showCategory'), 'Note categories are required');
+requireCondition(page.includes('cycleCategory'), 'Category picker is required');
+requireCondition(page.includes('categoryFilter'), 'Category filtering is required');
 
 if (failures.length) {
   failures.forEach(message => console.error(`ERROR: ${message}`));

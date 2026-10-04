@@ -975,6 +975,8 @@ export default {
   openKeyboard() {
     this.mode = 'keyboard'
     this.draft = ''
+    this.category = 'other'
+    this.categoryLabel = '其他'
     this.undoDraft = ''
     this.keyboardMode = 'letters'
     this.imeMode = this.settings.imeMode

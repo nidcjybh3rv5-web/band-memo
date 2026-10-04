@@ -26,6 +26,14 @@
         <input class="filter" type="button" value="最近" @click="showRecent" />
       </div>
 
+      <div class="category-filters">
+        <input class="category-filter" type="button" value="全部" @click="showCategory('all')" />
+        <input class="category-filter" type="button" value="學校" @click="showCategory('school')" />
+        <input class="category-filter" type="button" value="待辦" @click="showCategory('todo')" />
+        <input class="category-filter" type="button" value="工作" @click="showCategory('work')" />
+        <input class="category-filter" type="button" value="其他" @click="showCategory('other')" />
+      </div>
+
       <input
         class="new-note"
         type="button"
@@ -54,6 +62,7 @@
             <input class="pin" type="button" value="{{$item.pinned ? '📌' : '📍'}}" @click="togglePinned($item, $event)" />
             <input class="duplicate" type="button" value="複製" @click="duplicateNote($item, $event)" />
           </div>
+          <text class="category-label">{{$item.categoryLabel}}</text>
           <text class="time">{{$item.time}}</text>
         </list-item>
       </list>
@@ -140,6 +149,8 @@
       <text class="ime-hint" if="{{imeMode !== 'abc' && imeBuffer}}">
         {{imeBuffer}}
       </text>
+
+      <input class="category-action" type="button" value="分類：{{categoryLabel}}" @click="cycleCategory" />
 
       <div class="tools">
         <input class="tool cancel" type="button" value="取消" @click="cancelEdit" />
@@ -317,6 +328,8 @@ function safeNotes(raw) {
         time: item.time,
         favorite: !!item.favorite,
         pinned: !!item.pinned,
+        category: item.category === 'school' || item.category === 'todo' || item.category === 'work' || item.category === 'other' ? item.category : 'other',
+        categoryLabel: item.category === 'school' ? '學校' : item.category === 'todo' ? '待辦' : item.category === 'work' ? '工作' : '其他',
         lastUsed: typeof item.lastUsed === 'number' ? item.lastUsed : 0
       })
 
@@ -457,6 +470,9 @@ export default {
     displayNotes: [],
     searchQuery: '',
     filterMode: 'all',
+    categoryFilter: 'all',
+    category: 'other',
+    categoryLabel: '其他',
     emptyMessage: '點選新增，輸入你的備忘',
     mode: 'memo',
     draft: '',
@@ -542,6 +558,10 @@ export default {
   refreshList() {
     let items = this.notes.slice()
 
+    if (this.categoryFilter !== 'all') {
+      items = items.filter(note => note.category === this.categoryFilter)
+    }
+
     if (this.filterMode === 'favorites') {
       items = items.filter(note => note.favorite)
     } else if (this.filterMode === 'pinned') {
@@ -606,6 +626,23 @@ export default {
   showRecent() {
     this.filterMode = 'recent'
     this.refreshList()
+  },
+
+  showCategory(category) {
+    if (['all', 'school', 'todo', 'work', 'other'].indexOf(category) === -1) return
+    this.categoryFilter = category
+    this.refreshList()
+  },
+
+  getCategoryLabel(category) {
+    return category === 'school' ? '學校' : category === 'todo' ? '待辦' : category === 'work' ? '工作' : '其他'
+  },
+
+  cycleCategory() {
+    const order = ['other', 'school', 'todo', 'work']
+    const index = order.indexOf(this.category)
+    this.category = order[(index + 1) % order.length]
+    this.categoryLabel = this.getCategoryLabel(this.category)
   },
 
   toggleFavorite(item, event) {
@@ -1045,6 +1082,8 @@ export default {
 
     this.mode = 'keyboard'
     this.draft = note.text
+    this.category = note.category || 'other'
+    this.categoryLabel = this.getCategoryLabel(this.category)
     this.undoDraft = ''
     this.keyboardMode = 'letters'
     this.imeMode = this.settings.imeMode
@@ -1123,6 +1162,8 @@ export default {
           time: formatTime(new Date()),
           favorite: !!note.favorite,
           pinned: !!note.pinned,
+          category: note.category || 'other',
+          categoryLabel: this.getCategoryLabel(note.category || 'other'),
           lastUsed: Date.now()
         }
       })
@@ -1134,6 +1175,8 @@ export default {
         time: formatTime(now),
         favorite: false,
         pinned: false,
+        category: this.category,
+        categoryLabel: this.getCategoryLabel(this.category),
         lastUsed: now.getTime()
       }
 

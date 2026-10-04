@@ -546,6 +546,10 @@ export default {
   refreshList() {
     let items = this.notes.slice()
 
+    if (this.categoryFilter !== 'all') {
+      items = items.filter(note => note.category === this.categoryFilter)
+    }
+
     if (this.filterMode === 'favorites') {
       items = items.filter(note => note.favorite)
     } else if (this.filterMode === 'recent') {

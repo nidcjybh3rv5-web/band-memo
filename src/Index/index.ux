@@ -64,6 +64,7 @@
               @click="toggleFavorite($item, $event)"
             />
           </div>
+          <text class="category-label">{{$item.categoryLabel}}</text>
           <text class="time">{{$item.time}}</text>
         </list-item>
       </list>

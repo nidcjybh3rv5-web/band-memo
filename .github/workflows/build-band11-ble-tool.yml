@@ -1,0 +1,43 @@
+name: Build Band 11 BLE Tool
+
+on:
+  push:
+    paths:
+      - "band-tools/**"
+      - ".github/workflows/build-band11-ble-tool.yml"
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: py -m pip install -r band-tools/requirements.txt
+
+      - name: Validate scanner syntax
+        run: py -m py_compile band-tools/band11_ble_scanner.py
+
+      - name: Package tool
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist/band11-ble-tool | Out-Null
+          Copy-Item band-tools/* dist/band11-ble-tool/ -Recurse
+          Compress-Archive -Path dist/band11-ble-tool -DestinationPath dist/Xiaomi-Band11-BLE-Tool-v0.1.zip -Force
+
+      - name: Upload ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: Xiaomi-Band11-BLE-Tool-v0.1
+          path: dist/Xiaomi-Band11-BLE-Tool-v0.1.zip
+          if-no-files-found: error

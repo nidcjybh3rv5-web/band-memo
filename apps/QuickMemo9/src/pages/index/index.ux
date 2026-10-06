@@ -130,13 +130,13 @@
       </div>
 
       <div class="mode-row">
-        <input class="mode-btn" type="button" value="ABC" @click="setABC" />
-        <input class="mode-btn" type="button" value="拼音" @click="setPinyin" />
-        <input class="mode-btn" type="button" value="注音" @click="setZhuyin" />
-        <input class="script-btn" type="button" value="{{scriptMode === 'trad' ? '繁' : '簡'}}" @click="toggleScript" />
+        <input class="mode-btn compact" type="button" value="{{imeMode === 'abc' ? 'En' : imeMode === 'pinyin' ? '拼' : '注'}}" @click="setABC" />
+        <input class="icon-btn" type="button" value="{{shifted ? '⇧' : '⇧'}}" @click="toggleShift" />
+        <input class="icon-btn" type="button" value="⌫" @click="backspace" />
       </div>
 
-      <div class="candidate-row" if="{{imeMode !== 'abc' && candidates.length > 0}}">
+      <div class="candidate-row">
+        <input class="candidate" type="button" if="{{imeMode !== 'abc' && candidates.length === 0}}" value="{{imeMode === 'pinyin' ? '拼音' : '注音'}}" />
         <input
           class="candidate"
           type="button"
@@ -144,6 +144,13 @@
           value="{{$item}}"
           @click="chooseCandidate($item)"
         />
+      </div>
+
+      <div class="ime-switch-row">
+        <input class="mini-mode" type="button" value="En" @click="setABC" />
+        <input class="mini-mode" type="button" value="拼音" @click="setPinyin" />
+        <input class="mini-mode" type="button" value="注音" @click="setZhuyin" />
+        <input class="mini-mode script-mini" type="button" value="{{scriptMode === 'trad' ? '繁' : '簡'}}" @click="toggleScript" />
       </div>
 
       <text class="ime-hint" if="{{imeMode !== 'abc' && imeBuffer}}">
@@ -170,35 +177,29 @@
           <input class="key" type="button" value="E" @click="typeKey('E')" />
           <input class="key" type="button" value="R" @click="typeKey('R')" />
           <input class="key" type="button" value="T" @click="typeKey('T')" />
-        </div>
-        <div class="key-row">
           <input class="key" type="button" value="Y" @click="typeKey('Y')" />
           <input class="key" type="button" value="U" @click="typeKey('U')" />
           <input class="key" type="button" value="I" @click="typeKey('I')" />
           <input class="key" type="button" value="O" @click="typeKey('O')" />
           <input class="key" type="button" value="P" @click="typeKey('P')" />
         </div>
-        <div class="key-row">
+        <div class="key-row key-row-middle">
           <input class="key" type="button" value="A" @click="typeKey('A')" />
           <input class="key" type="button" value="S" @click="typeKey('S')" />
           <input class="key" type="button" value="D" @click="typeKey('D')" />
           <input class="key" type="button" value="F" @click="typeKey('F')" />
           <input class="key" type="button" value="G" @click="typeKey('G')" />
-        </div>
-        <div class="key-row">
           <input class="key" type="button" value="H" @click="typeKey('H')" />
           <input class="key" type="button" value="J" @click="typeKey('J')" />
           <input class="key" type="button" value="K" @click="typeKey('K')" />
           <input class="key" type="button" value="L" @click="typeKey('L')" />
         </div>
-        <div class="key-row">
+        <div class="key-row key-row-bottom">
           <input class="key" type="button" value="Z" @click="typeKey('Z')" />
           <input class="key" type="button" value="X" @click="typeKey('X')" />
           <input class="key" type="button" value="C" @click="typeKey('C')" />
           <input class="key" type="button" value="V" @click="typeKey('V')" />
           <input class="key" type="button" value="B" @click="typeKey('B')" />
-        </div>
-        <div class="key-row">
           <input class="key" type="button" value="N" @click="typeKey('N')" />
           <input class="key" type="button" value="M" @click="typeKey('M')" />
         </div>
@@ -335,6 +336,7 @@ function safeNotes(raw) {
 function safeSettings(raw) {
   const defaults = {
     imeMode: 'abc',
+    shifted: true,
     scriptMode: 'trad',
     candidateLimit: DEFAULT_CANDIDATE_LIMIT
   }
@@ -941,6 +943,7 @@ export default {
 
   openKeyboard() {
     this.mode = 'keyboard'
+    this.shifted = true
     this.draft = ''
     this.category = 'other'
     this.categoryLabel = '其他'
@@ -954,6 +957,11 @@ export default {
   },
 
 
+  toggleShift() {
+    this.shifted = !this.shifted
+  },
+
+
   typeKey(value) {
     if (typeof value !== 'string' || !value) {
       return
@@ -961,7 +969,7 @@ export default {
 
     if (this.imeMode === 'abc') {
       if (this.draft.length < MAX_TEXT_LENGTH) {
-        this.draft += value
+        this.draft += this.shifted ? value.toUpperCase() : value.toLowerCase()
       }
       return
     }
@@ -1033,6 +1041,7 @@ export default {
 
 
   editNote(note) {
+    this.shifted = true
     if (!note || typeof note.id !== 'string') {
       return
     }
@@ -1488,43 +1497,79 @@ export default {
   width: 160px;
   height: 30px;
   margin-top: 5px;
-  justify-content: space-between;
+  justify-content: center;
   flex-direction: row;
 }
 
 .mode-btn,
-.script-btn {
+.icon-btn {
   height: 30px;
   border-radius: 15px;
   color: #ffffff;
-  background-color: #242525;
-  font-size: 12px;
+  background-color: #343434;
+  font-size: 13px;
 }
 
 .mode-btn {
-  width: 44px;
+  width: 52px;
+  margin-right: 5px;
 }
 
-.script-btn {
+.mode-btn.compact {
+  background-color: #242525;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.icon-btn {
   width: 34px;
-  background-color: #246bff;
+  margin-right: 5px;
+  background-color: #242525;
 }
 
 .candidate-row {
   width: 160px;
-  height: 29px;
-  margin-top: 3px;
-  justify-content: space-between;
+  height: 30px;
+  margin-top: 4px;
+  padding: 0 6px;
+  border-radius: 15px;
+  background-color: #343434;
+  justify-content: flex-start;
   flex-direction: row;
+  align-items: center;
 }
 
 .candidate {
-  width: 18px;
+  width: 31px;
   height: 28px;
+  margin-right: 3px;
   border-radius: 14px;
-  background-color: #343434;
+  background-color: #4a4a4a;
   color: #ffffff;
-  font-size: 15px;
+  font-size: 13px;
+}
+
+.ime-switch-row {
+  width: 160px;
+  height: 24px;
+  margin-top: 3px;
+  justify-content: center;
+  flex-direction: row;
+  align-items: center;
+}
+
+.mini-mode {
+  width: 38px;
+  height: 22px;
+  margin-right: 3px;
+  border-radius: 11px;
+  background-color: #202020;
+  color: #ffffff;
+  font-size: 10px;
+}
+
+.script-mini {
+  width: 30px;
 }
 
 .ime-hint {
@@ -1588,32 +1633,40 @@ export default {
 }
 
 .qwerty-keys {
-  height: 226px;
+  height: 155px;
   margin-top: 2px;
   padding-top: 2px;
 }
 
 .zhuyin-keys {
-  height: 252px;
+  height: 205px;
   margin-top: 2px;
   padding-top: 1px;
 }
 
 .key-row {
   justify-content: center;
-  height: 37px;
+  height: 50px;
   flex-direction: row;
   align-items: center;
 }
 
+.key-row-middle {
+  padding-left: 8px;
+}
+
+.key-row-bottom {
+  padding-left: 4px;
+}
+
 .key {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   margin-right: 2px;
-  border-radius: 17px;
+  border-radius: 15px;
   background-color: #242525;
   color: #ffffff;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .zhuyin-row {

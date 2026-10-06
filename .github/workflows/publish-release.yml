@@ -1,0 +1,109 @@
+name: Publish QuickMemo Combined Release
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Read and verify version
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./apps/QuickMemo9/package.json').version")
+          VERSION11=$(node -p "require('./apps/QuickMemo11/package.json').version")
+          if [ "$VERSION" != "$VERSION11" ]; then
+            echo "::error::QuickMemo9 and QuickMemo11 versions must match."
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Install Band 9 dependencies
+        working-directory: apps/QuickMemo9
+        run: npm install
+
+      - name: Validate Band 9
+        working-directory: apps/QuickMemo9
+        run: npm run validate
+
+      - name: Build Band 9
+        working-directory: apps/QuickMemo9
+        run: npm run build
+
+      - name: Install Band 11 dependencies
+        working-directory: apps/QuickMemo11
+        run: npm install
+
+      - name: Validate Band 11
+        working-directory: apps/QuickMemo11
+        run: npm run validate
+
+      - name: Build Band 11
+        working-directory: apps/QuickMemo11
+        run: npm run build
+
+      - name: Collect both RPK files
+        shell: bash
+        run: |
+          set -e
+          VERSION="${{ steps.version.outputs.version }}"
+          mkdir -p release-assets
+          mapfile -t RPK9 < <(find apps/QuickMemo9 -type f -name "*.rpk" -not -path "*/node_modules/*" -not -path "*/artifacts/*")
+          mapfile -t RPK11 < <(find apps/QuickMemo11 -type f -name "*.rpk" -not -path "*/node_modules/*" -not -path "*/artifacts/*")
+          [ "${#RPK9[@]}" -gt 0 ] || { echo "::error::QuickMemo9 RPK not found."; exit 1; }
+          [ "${#RPK11[@]}" -gt 0 ] || { echo "::error::QuickMemo11 RPK not found."; exit 1; }
+          cp "${RPK9[0]}" "release-assets/QuickMemo9-v${VERSION}.rpk"
+          cp "${RPK11[0]}" "release-assets/QuickMemo11-v${VERSION}.rpk"
+          sha256sum release-assets/*.rpk
+
+      - name: Check whether release already exists
+        id: existing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if gh release view "v${VERSION}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish combined GitHub Release
+        if: steps.existing.outputs.exists != 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: QuickMemo v${{ steps.version.outputs.version }}
+          body: |
+            # QuickMemo v${{ steps.version.outputs.version }}
+
+            ## 📦 支援型號
+            - QuickMemo9 — Xiaomi Smart Band 9 / 9 NFC
+            - QuickMemo11 — Xiaomi Smart Band 11
+
+            ## 📥 安裝
+            下載下方對應型號的 `.rpk` 檔案，再使用相容的 Vela / AstroBox 測試工具安裝。
+
+            > ⚠️ 注意：目前 Build 產生的是 DEBUG RPK，不代表小米官方認證或正式商店簽章。
+
+            ## 📋 Full Changelog
+            請查看本次版本的 Commit 與變更記錄。
+          files: |
+            release-assets/QuickMemo9-v${{ steps.version.outputs.version }}.rpk
+            release-assets/QuickMemo11-v${{ steps.version.outputs.version }}.rpk
+          fail_on_unmatched_files: true
+          generate_release_notes: true

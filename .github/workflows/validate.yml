@@ -1,13 +1,13 @@
-name: Build Vela Band 9 RPK
+name: Build QuickMemo9 Band 9 RPK
 
 on:
   push:
-    branches: ["main", "1.0"]
+    branches: ["main"]
   pull_request:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build-rpk:
@@ -38,22 +38,11 @@ jobs:
           node --version
           npm --version
 
-      - name: Read app version
-        id: version
-        shell: bash
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Building Band Memo v$VERSION"
-
       - name: Build RPK
         run: |
           set -e
           npm run build
-          if [ ! -d build ]; then
-            echo "::error::AIoT build did not create the build directory."
-            exit 1
-          fi
+          test -d build
           find build -maxdepth 4 -type f -print | sort
 
       - name: Find RPK output
@@ -61,48 +50,18 @@ jobs:
         run: |
           set -e
           mkdir -p artifacts
-          mapfile -t RPK_FILES < <(find . -type f -name "*.rpk" -not -path "./node_modules/*")
+          mapfile -t RPK_FILES < <(find . -type f -name "*.rpk" -not -path "./node_modules/*" -not -path "./artifacts/*")
           if [ "${#RPK_FILES[@]}" -eq 0 ]; then
             echo "::error::Build completed but no .rpk file was found."
             exit 1
           fi
-          VERSION="${{ steps.version.outputs.version }}"
-          echo "Found RPK: ${RPK_FILES[0]}"
-          echo "Target RPK: artifacts/QuickMemo-v${VERSION}-Band9.rpk"
-          cp "${RPK_FILES[0]}" "artifacts/QuickMemo-v${VERSION}-Band9.rpk"
-          ls -lah artifacts/
+          VERSION=$(node -p "require('./package.json').version")
+          cp "${RPK_FILES[0]}" "artifacts/QuickMemo9-v${VERSION}.rpk"
 
       - name: Upload RPK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: quickmemo-band9-rpk-${{ github.sha }}
+          name: quickmemo9-rpk-${{ github.sha }}
           path: apps/QuickMemo9/artifacts/*.rpk
           if-no-files-found: error
           retention-days: 14
-
-      - name: Publish GitHub Release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.version.outputs.version }}
-          name: QuickMemo v${{ steps.version.outputs.version }}
-          body: |
-            # QuickMemo v${{ steps.version.outputs.version }}
-
-            小米手環 9 / 9 NFC Vela 速記 App。
-
-            ## 內容
-            - 台灣＋中國跨區輸入
-            - ABC / 拼音 / 注音
-            - 繁體 / 簡體切換
-            - 筆記搜尋、最愛、最近使用
-            - 大型觸控鍵盤
-            - 個人化設定與程式碼優化
-
-            ## 安裝
-            下載下方的 .rpk 檔案，再使用相容的 Vela / AstroBox 測試工具安裝。
-
-            > 注意：目前 Build 產生的是 DEBUG RPK，不代表小米官方認證或正式商店簽章。
-          files: apps/QuickMemo9/artifacts/*.rpk
-          fail_on_unmatched_files: true
-          generate_release_notes: true

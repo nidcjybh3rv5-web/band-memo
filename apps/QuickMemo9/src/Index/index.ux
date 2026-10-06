@@ -113,7 +113,7 @@
       <div class="about-card">
         <text class="about-name">QuickMemo9</text>
         <text class="about-text">速記 · Band 9 / 9 NFC</text>
-        <text class="about-text">v1.3.0 · 設定＋程式碼優化</text>
+        <text class="about-text">v1.4.0 · 分類系統</text>
       </div>
 
       <text class="status" if="{{status}}">{{status}}</text>
@@ -639,6 +639,8 @@ export default {
         text: note.text,
         time: note.time,
         favorite: !note.favorite,
+        category: note.category || 'other',
+        categoryLabel: this.getCategoryLabel(note.category || 'other'),
         lastUsed: note.lastUsed || 0
       }
     })

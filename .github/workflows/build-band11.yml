@@ -3,10 +3,11 @@ name: Build QuickMemo11 Band 11 RPK
 on:
   push:
     branches: ["main"]
+  pull_request:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build-rpk:
@@ -37,13 +38,6 @@ jobs:
           node --version
           npm --version
 
-      - name: Read app version
-        id: version
-        shell: bash
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-
       - name: Build RPK
         run: |
           set -e
@@ -56,29 +50,18 @@ jobs:
         run: |
           set -e
           mkdir -p artifacts
-          mapfile -t RPK_FILES < <(find . -type f -name "*.rpk" -not -path "./node_modules/*")
+          mapfile -t RPK_FILES < <(find . -type f -name "*.rpk" -not -path "./node_modules/*" -not -path "./artifacts/*")
           if [ "${#RPK_FILES[@]}" -eq 0 ]; then
             echo "::error::Build completed but no .rpk file was found."
             exit 1
           fi
-          VERSION="${{ steps.version.outputs.version }}"
-          cp "${RPK_FILES[0]}" "artifacts/QuickMemo-v${VERSION}-Band11.rpk"
+          VERSION=$(node -p "require('./package.json').version")
+          cp "${RPK_FILES[0]}" "artifacts/QuickMemo11-v${VERSION}.rpk"
 
       - name: Upload RPK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: quickmemo-band11-rpk-${{ github.sha }}
+          name: quickmemo11-rpk-${{ github.sha }}
           path: apps/QuickMemo11/artifacts/*.rpk
           if-no-files-found: error
           retention-days: 14
-
-      - name: Publish GitHub Release Asset
-        if: github.event_name == 'push'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: quickmemo11-v${{ steps.version.outputs.version }}
-          name: QuickMemo11 v${{ steps.version.outputs.version }}
-          body: |
-            QuickMemo11 — Xiaomi Smart Band 11 Vela App
-          files: apps/QuickMemo11/artifacts/*.rpk
-          fail_on_unmatched_files: true

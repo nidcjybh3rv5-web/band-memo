@@ -1,6 +1,6 @@
 {
   "name": "quickmemo11-vela-band11",
-  "version": "1.3.1",
+  "version": "1.4.0",
   "private": true,
   "description": "QuickMemo (速記) for Xiaomi Vela JS on Xiaomi Smart Band 11",
   "scripts": {

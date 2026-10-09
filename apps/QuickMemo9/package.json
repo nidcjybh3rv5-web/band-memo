@@ -1,6 +1,6 @@
 {
   "name": "quickmemo9-vela-band9",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "private": true,
   "description": "QuickMemo (速記) for Xiaomi Vela JS on Xiaomi Band 9 / 9 NFC",
   "scripts": {

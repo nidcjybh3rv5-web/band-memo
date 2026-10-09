@@ -2,8 +2,8 @@
   "package": "com.nick.quickmemo11",
   "name": "QuickMemo11",
   "icon": "/common/images/icon.png",
-  "versionName": "1.4.0",
-  "versionCode": 3,
+  "versionName": "1.5.0",
+  "versionCode": 4,
   "minAPILevel": 1,
   "features": [
     {

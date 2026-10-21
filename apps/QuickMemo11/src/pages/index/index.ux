@@ -731,11 +731,7 @@ export default {
       }
     })
 
-    this.commitNotes(nextNotes)
-    storage.set({
-      key: KEY,
-      value: JSON.stringify(nextNotes)
-    })
+    this.saveMetadata(nextNotes, '已更新最近使用')
   },
 
   toSimplified(text) {
@@ -1232,8 +1228,15 @@ export default {
 
 
   saveNotes(nextNotes, successMessage, returnMode) {
-    const self = this
+    if (!this.notesReady) {
+      this.status = '筆記尚未安全載入，請重新開啟後再試'
+      return
+    }
+    if (this.isSaving) {
+      return
+    }
 
+    const self = this
     this.isSaving = true
     this.status = '儲存中…'
 

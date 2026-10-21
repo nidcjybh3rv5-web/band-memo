@@ -474,6 +474,7 @@ export default {
     editingId: '',
     deleteArmed: false,
     isSaving: false,
+    notesReady: false,
     undoDraft: '',
     keyboardMode: 'letters',
     status: '',
@@ -498,19 +499,39 @@ export default {
       default: '[]',
 
       success(data) {
+        const raw = typeof data === 'string'
+          ? data
+          : data && data.data
 
-        self.commitNotes(
-          safeNotes(
-            typeof data === 'string'
-              ? data
-              : data && data.data
-          )
-        )
+        // Do not silently replace unreadable/corrupt data with an empty list.
+        if (typeof raw !== 'string' || utf8ByteLength(raw) > MAX_BYTES) {
+          self.status = '筆記資料無法讀取，為避免覆蓋資料，已停用修改'
+          self.notesReady = false
+          return
+        }
 
+        let parsed
+        try {
+          parsed = JSON.parse(raw)
+        } catch (error) {
+          self.status = '筆記資料格式異常，為避免資料遺失，已停用修改'
+          self.notesReady = false
+          return
+        }
+
+        if (!Array.isArray(parsed)) {
+          self.status = '筆記資料格式異常，為避免資料遺失，已停用修改'
+          self.notesReady = false
+          return
+        }
+
+        self.commitNotes(safeNotes(raw))
+        self.notesReady = true
       },
 
       fail() {
-        self.commitNotes([])
+        self.status = '筆記讀取失敗，請重新開啟；為避免資料遺失，已停用修改'
+        self.notesReady = false
       }
     })
 
@@ -664,6 +685,10 @@ export default {
   },
 
   saveMetadata(nextNotes, successMessage) {
+    if (!this.notesReady) {
+      this.status = '筆記尚未安全載入，請重新開啟後再試'
+      return
+    }
     if (this.isSaving) {
       return
     }
@@ -688,7 +713,7 @@ export default {
   },
 
   touchNote(id) {
-    if (!id || this.isSaving) {
+    if (!this.notesReady || !id || this.isSaving) {
       return
     }
 
@@ -880,19 +905,26 @@ export default {
 
 
   clearAllNotes() {
+    if (!this.notesReady || this.isSaving) {
+      this.status = '筆記尚未安全載入，暫時無法清除'
+      return
+    }
     const self = this
+    this.isSaving = true
     storage.set({
       key: KEY,
       value: '[]',
 
       success() {
         self.commitNotes([])
+        self.isSaving = false
         self.confirmClearAll = false
         self.applySettingLabels()
         self.status = '已清除全部筆記'
       },
 
       fail() {
+        self.isSaving = false
         self.status = '清除失敗，請再試一次'
       }
     })
